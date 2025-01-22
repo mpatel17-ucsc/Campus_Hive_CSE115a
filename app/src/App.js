@@ -1,7 +1,15 @@
+import React, { useState } from 'react'; // Add useState import
 import logo from './logo.svg';
 import './App.css';
+import LoginPage from './Login'; // Make sure LoginPage.js exists in the same directory
 
 function App() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  if (!isLoggedIn) {
+    return <LoginPage onLoginSuccess={() => setIsLoggedIn(true)} />;
+  }
+
   return (
     <div className="App">
       <header className="App-header">
@@ -17,6 +25,7 @@ function App() {
         >
           Learn React
         </a>
+        <button onClick={() => setIsLoggedIn(false)}>Logout</button>
       </header>
     </div>
   );
