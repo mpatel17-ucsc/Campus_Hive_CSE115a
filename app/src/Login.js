@@ -1,4 +1,7 @@
 import React, { useState } from 'react';
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { auth, db } from "./Firebase";
+import { doc, setDoc } from "firebase/firestore";
 
 const Login = ({ onLoginSuccess }) => {
   const [email, setEmail] = useState('');
@@ -12,14 +15,14 @@ const Login = ({ onLoginSuccess }) => {
     setIsLoading(true);
 
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      if (email === 'test@example.com' && password === 'password') {
-        onLoginSuccess();
-      } else {
-        throw new Error('Invalid credentials');
-      }
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+      await setDoc(doc(db, "users", user.uid), {
+        email: user.email,
+        lastLogin: new Date().toISOString(),
+      });
+
+      onLoginSuccess();
     } catch (err) {
       setError(err.message);
     } finally {
