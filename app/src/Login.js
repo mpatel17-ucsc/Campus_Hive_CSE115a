@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { signInWithEmailAndPassword } from "firebase/auth";
+import { signInWithEmailAndPassword, signInWithPopup, getAuth, GoogleAuthProvider } from "firebase/auth";
 import { auth, db } from "./Firebase";
 import { doc, setDoc } from "firebase/firestore";
 
@@ -29,6 +29,28 @@ const Login = ({ onLoginSuccess }) => {
       setIsLoading(false);
     }
   };
+
+  const handleGoogleSignIn = async () => {
+    setError('');
+    setIsLoading(true);
+    const provider = new GoogleAuthProvider();
+    try {
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
+
+      await setDoc(doc(db, "users", user.uid), {
+        email: user.email,
+        lastLogin: new Date().toISOString(),
+      });
+
+      onLoginSuccess();
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
 
   return (
     <div style={{
@@ -140,6 +162,25 @@ const Login = ({ onLoginSuccess }) => {
             }}
           >
             Sign up
+          </button>
+        </div>
+
+        <div style={{
+          marginTop: '20px',
+          textAlign: 'center'
+        }}>
+          <button
+            onClick={handleGoogleSignIn}
+            style={{
+              padding: '10px',
+              backgroundColor: '#db4437',
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: 'pointer'
+            }}
+          >
+            Sign in with Google
           </button>
         </div>
       </div>
