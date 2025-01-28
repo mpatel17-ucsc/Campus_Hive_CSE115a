@@ -2,17 +2,19 @@ import React, { useState } from "react";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { auth, db } from "./Firebase";
 import { doc, setDoc, serverTimestamp } from "firebase/firestore";
+import { useNavigate } from "react-router-dom";
 
 const SignUp = () => {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
     const [error, setError] = useState("");
-
+    const [isLoading, setIsLoading] = useState(false);
+    const navigate = useNavigate();
     const handleSignUp = async (e) => {
         e.preventDefault();
         
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
         if (!emailRegex.test(email)) {
             setError("Please enter a valid email address");
             return;
@@ -22,7 +24,7 @@ const SignUp = () => {
             return;
         }
         if (password !== confirmPassword) {
-            setError("Passwords do not match");
+            setError("Passwords do not match");e
             return;
         }
         try {
@@ -30,6 +32,7 @@ const SignUp = () => {
             const user = userCredential.user;
             await setDoc(doc(db, "users", user.uid), {
                 email: user.email,
+                password: user.password,
                 createdAt: serverTimestamp(),
             });
             setEmail("");
@@ -37,6 +40,7 @@ const SignUp = () => {
             setConfirmPassword("");
             setError("");
             alert("Sign up successful! You can log in now.");
+            navigate("/login");
         } catch (error) {
             setError(error.message);
         }
