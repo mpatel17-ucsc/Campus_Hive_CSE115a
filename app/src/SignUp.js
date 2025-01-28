@@ -36,7 +36,6 @@ const SignUp = () => {
             const user = userCredential.user;
             await setDoc(doc(db, "users", user.uid), {
                 email: user.email,
-                password: user.password,
                 createdAt: serverTimestamp(),
             });
             setEmail("");
