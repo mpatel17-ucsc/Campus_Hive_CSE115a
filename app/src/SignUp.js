@@ -13,18 +13,22 @@ const SignUp = () => {
     const navigate = useNavigate();
     const handleSignUp = async (e) => {
         e.preventDefault();
-        
+        setError("");
+        setIsLoading(true);
         const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
         if (!emailRegex.test(email)) {
             setError("Please enter a valid email address");
+            setIsLoading(false);
             return;
         }
         if (password.length < 8) {
             setError("Password must be at least 8 characters long");
+            setIsLoading(false);
             return;
         }
         if (password !== confirmPassword) {
-            setError("Passwords do not match");e
+            setError("Passwords do not match");
+            setIsLoading(false);
             return;
         }
         try {
@@ -39,8 +43,7 @@ const SignUp = () => {
             setPassword("");
             setConfirmPassword("");
             setError("");
-            alert("Sign up successful! You can log in now.");
-            navigate("/login");
+            navigate("/login", { state: { message: "Account created successfully. Please log in!" } });
         } catch (error) {
             setError(error.message);
         }
