@@ -9,6 +9,8 @@ import {
 } from "firebase/auth";
 import { auth, db } from "./Firebase";
 import { doc, setDoc } from "firebase/firestore";
+import { useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 
 const Login = ({ onLoginSuccess }) => {
   const [email, setEmail] = useState("");
@@ -16,7 +18,10 @@ const Login = ({ onLoginSuccess }) => {
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-
+  const navigate = useNavigate();
+  const location = useLocation();
+  const successMessage = location.state?.message;
+  // Handle manual login
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
@@ -35,6 +40,7 @@ const Login = ({ onLoginSuccess }) => {
         lastLogin: new Date().toISOString(),
       });
       onLoginSuccess();
+      navigate('/home');
     } catch (err) {
       setError(err.message);
     } finally {
@@ -42,6 +48,7 @@ const Login = ({ onLoginSuccess }) => {
     }
   };
 
+  // Handle Google login
   const handleGoogleSignIn = async () => {
     setError("");
     setIsLoading(true);
@@ -56,6 +63,7 @@ const Login = ({ onLoginSuccess }) => {
       });
 
       onLoginSuccess();
+      navigate('/home');
     } catch (err) {
       setError(err.message);
     } finally {
@@ -63,6 +71,7 @@ const Login = ({ onLoginSuccess }) => {
     }
   };
 
+  // Handle password reset
   const handleReset = async () => {
     console.log("Reset password");
     setIsLoading(true);
@@ -120,17 +129,17 @@ const Login = ({ onLoginSuccess }) => {
             </div>
           )}
 
-          {message && (
+          {(message || successMessage) && (
             <div
               style={{
                 padding: "10px",
                 marginBottom: "20px",
                 backgroundColor: "#ecfee2",
-                // color: "#dc2616",
+                color: "#166534",
                 borderRadius: "4px",
               }}
             >
-              {message}
+              {message || successMessage}
             </div>
           )}
 
@@ -210,7 +219,7 @@ const Login = ({ onLoginSuccess }) => {
         >
           Don't have an account?{" "}
           <button
-            onClick={() => console.log("Navigate to sign up")}
+            onClick={() => navigate('/signup')}
             style={{
               color: "#3b82f6",
               background: "none",
