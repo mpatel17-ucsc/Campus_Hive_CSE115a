@@ -9,6 +9,7 @@ import {
 } from "firebase/auth";
 import { auth, db } from "./Firebase";
 import { doc, setDoc } from "firebase/firestore";
+import { useNavigate } from "react-router-dom";
 
 const Login = ({ onLoginSuccess }) => {
   const [email, setEmail] = useState("");
@@ -16,7 +17,7 @@ const Login = ({ onLoginSuccess }) => {
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-
+  const navigate = useNavigate();
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
@@ -210,7 +211,7 @@ const Login = ({ onLoginSuccess }) => {
         >
           Don't have an account?{" "}
           <button
-            onClick={() => console.log("Navigate to sign up")}
+            onClick={() => navigate('/signup')}
             style={{
               color: "#3b82f6",
               background: "none",
