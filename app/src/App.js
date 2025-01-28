@@ -1,7 +1,7 @@
-import React, { useState } from 'react'; // Add useState import
-import logo from './logo.svg';
-import './App.css';
-import LoginPage from './Login'; // Make sure LoginPage.js exists in the same directory
+import React, { useState } from "react"; // Add useState import
+import logo from "./logo.svg";
+import "./App.css";
+import LoginPage from "./Login"; // Make sure LoginPage.js exists in the same directory
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -32,3 +32,4 @@ function App() {
 }
 
 export default App;
+
