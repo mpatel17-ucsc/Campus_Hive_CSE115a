@@ -18,6 +18,7 @@ const Login = ({ onLoginSuccess }) => {
   const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  // Handle manual login
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
@@ -36,6 +37,7 @@ const Login = ({ onLoginSuccess }) => {
         lastLogin: new Date().toISOString(),
       });
       onLoginSuccess();
+      navigate('/home');
     } catch (err) {
       setError(err.message);
     } finally {
@@ -43,6 +45,7 @@ const Login = ({ onLoginSuccess }) => {
     }
   };
 
+  // Handle Google login
   const handleGoogleSignIn = async () => {
     setError("");
     setIsLoading(true);
@@ -57,6 +60,7 @@ const Login = ({ onLoginSuccess }) => {
       });
 
       onLoginSuccess();
+      navigate('/home');
     } catch (err) {
       setError(err.message);
     } finally {
@@ -64,6 +68,7 @@ const Login = ({ onLoginSuccess }) => {
     }
   };
 
+  // Handle password reset
   const handleReset = async () => {
     console.log("Reset password");
     setIsLoading(true);
