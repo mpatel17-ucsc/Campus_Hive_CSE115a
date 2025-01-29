@@ -21,6 +21,7 @@ const Login = ({ onLoginSuccess }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const successMessage = location.state?.message;
+
   // Handle manual login
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -40,7 +41,7 @@ const Login = ({ onLoginSuccess }) => {
         lastLogin: new Date().toISOString(),
       });
       onLoginSuccess();
-      navigate('/home');
+      navigate("/home");
     } catch (err) {
       setError(err.message);
     } finally {
@@ -63,7 +64,7 @@ const Login = ({ onLoginSuccess }) => {
       });
 
       onLoginSuccess();
-      navigate('/home');
+      navigate("/home");
     } catch (err) {
       setError(err.message);
     } finally {
@@ -219,7 +220,7 @@ const Login = ({ onLoginSuccess }) => {
         >
           Don't have an account?{" "}
           <button
-            onClick={() => navigate('/signup')}
+            onClick={() => navigate("/signup")}
             style={{
               color: "#3b82f6",
               background: "none",
