@@ -8,22 +8,66 @@ import {
   Typography,
 } from "@mui/material";
 
-import { db } from "../Firebase";
+import { db, auth } from "../Firebase";
 
 import { ThumbUp, ThumbDown } from "@mui/icons-material";
 
-import { doc, updateDoc, increment } from "firebase/firestore";
+import { doc, updateDoc, increment, getDoc, arrayUnion, arrayRemove } from "firebase/firestore";
 
 const ActivityCard = ({ activity, onVote }) => {
+  const user = auth.currentUser; // Get logged-in user
+  const activityRef = doc(db, "activities", activity.id);
+
   const handleVote = async (type) => {
     try {
-      const activityRef = doc(db, "activities", activity.id);
-      await updateDoc(activityRef, {
-        [type]: increment(1),
-      });
+      const activitySnap = await getDoc(activityRef);
+
+      if (activitySnap.exists()) {
+        const data = activitySnap.data();
+        const userId = user.uid;
+
+        // Get previous votes
+        const hasUpvoted = data.upvotedBy?.includes(userId);
+        const hasDownvoted = data.downvotedBy?.includes(userId);
+
+        let updateData = {};
+        if (type === "upvotes") {
+          if (hasUpvoted) {
+            // If already upvoted, remove the upvote
+            updateData = {
+              upvotes: increment(-1),
+              upvotedBy: arrayRemove(userId),
+            };
+          } else {
+            // If downvoted before, remove downvote and add upvote
+            updateData = {
+              upvotes: increment(1),
+              upvotedBy: arrayUnion(userId),
+              ...(hasDownvoted && { downvotes: increment(-1), downvotedBy: arrayRemove(userId) }),
+            };
+          }
+        } else if (type === "downvotes") {
+          if (hasDownvoted) {
+            // If already downvoted, remove the downvote
+            updateData = {
+              downvotes: increment(-1),
+              downvotedBy: arrayRemove(userId),
+            };
+          } else {
+            // If upvoted before, remove upvote and add downvote
+            updateData = {
+              downvotes: increment(1),
+              downvotedBy: arrayUnion(userId),
+              ...(hasUpvoted && { upvotes: increment(-1), upvotedBy: arrayRemove(userId) }),
+            };
+          }
+        }
+
+      await updateDoc(activityRef, updateData);
 
       // Notify parent component to refresh data
       onVote();
+      }
     } catch (error) {
       console.error("Error updating votes:", error);
     }
