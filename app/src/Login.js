@@ -2,16 +2,15 @@ import React, { useState } from "react";
 import {
   signInWithEmailAndPassword,
   signInWithPopup,
+  getAuth,
+  GoogleAuthProvider,
   sendPasswordResetEmail,
+  onAuthStateChanged,
 } from "firebase/auth";
 import { auth, db } from "./Firebase";
 import { doc, setDoc } from "firebase/firestore";
-<<<<<<< HEAD
 import { useNavigate } from "react-router-dom";
 import { useLocation } from "react-router-dom";
-=======
-import { GoogleAuthProvider } from "firebase/auth";
->>>>>>> 79f5b2a (Cleaner login page)
 
 const Login = ({ onLoginSuccess }) => {
   const [email, setEmail] = useState("");
@@ -30,7 +29,11 @@ const Login = ({ onLoginSuccess }) => {
     setIsLoading(true);
 
     try {
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const userCredential = await signInWithEmailAndPassword(
+        auth,
+        email,
+        password,
+      );
       const user = userCredential.user;
 
       await setDoc(doc(db, "users", user.uid), {
@@ -71,17 +74,21 @@ const Login = ({ onLoginSuccess }) => {
 
   // Handle password reset
   const handleReset = async () => {
-    setError("");
+    console.log("Reset password");
     setIsLoading(true);
 
-    try {
-      await sendPasswordResetEmail(auth, email);
-      setMessage("If an account with this email exists, a password reset email has been sent.");
-    } catch (error) {
-      setError(error.message);
-    } finally {
-      setIsLoading(false);
-    }
+    sendPasswordResetEmail(auth, email)
+      .then(() => {
+        setError("");
+        setMessage(
+          "If an account with this email exists, a password reset email has been sent.",
+        );
+      })
+      .catch((error) => {
+        const errorCode = error.code;
+        const errorMessage = error.message;
+        setError(errorMessage);
+      });
   };
 
   return (
@@ -91,7 +98,7 @@ const Login = ({ onLoginSuccess }) => {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        backgroundColor: "#FFBF00",
+        backgroundColor: "#f5f5f5",
         padding: "20px",
       }}
     >
@@ -101,21 +108,13 @@ const Login = ({ onLoginSuccess }) => {
           maxWidth: "400px",
           padding: "20px",
           backgroundColor: "white",
-          borderRadius: "10px",
-          boxShadow: "0 4px 10px rgba(0, 0, 0, 0.1)",
-          textAlign: "center",
+          borderRadius: "8px",
+          boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
         }}
       >
-        {/* Logo Section */}
-        <div style={{ marginBottom: "20px" }}>
-          <img
-            src="hive.png" // Replace with your logo URL
-            alt="App Logo"
-            style={{ width: "100px", marginBottom: "10px" }}
-          />
-          <h1 style={{ fontSize: "24px", color: "#333", fontWeight: "bold" }}>Campus Hive</h1>
-        </div>
-
+        <h2 style={{ textAlign: "center", marginBottom: "20px" }}>
+          Welcome back
+        </h2>
         <form onSubmit={handleSubmit}>
           {error && (
             <div
@@ -136,13 +135,8 @@ const Login = ({ onLoginSuccess }) => {
               style={{
                 padding: "10px",
                 marginBottom: "20px",
-<<<<<<< HEAD
                 backgroundColor: "#ecfee2",
                 color: "#166534",
-=======
-                backgroundColor: "#d1fae5",
-                color: "#065f46",
->>>>>>> 79f5b2a (Cleaner login page)
                 borderRadius: "4px",
               }}
             >
@@ -150,7 +144,7 @@ const Login = ({ onLoginSuccess }) => {
             </div>
           )}
 
-          <div style={{ marginBottom: "15px", textAlign: "left" }}>
+          <div style={{ marginBottom: "15px" }}>
             <label
               style={{
                 display: "block",
@@ -166,16 +160,16 @@ const Login = ({ onLoginSuccess }) => {
               onChange={(e) => setEmail(e.target.value)}
               required
               style={{
-                width: "90%",
-                padding: "10px",
+                width: "100%",
+                padding: "8px",
                 border: "1px solid #ddd",
-                borderRadius: "8px",
+                borderRadius: "4px",
               }}
               placeholder="name@example.com"
             />
           </div>
 
-          <div style={{ marginBottom: "20px", textAlign: "left" }}>
+          <div style={{ marginBottom: "20px" }}>
             <label
               style={{
                 display: "block",
@@ -191,12 +185,11 @@ const Login = ({ onLoginSuccess }) => {
               onChange={(e) => setPassword(e.target.value)}
               required
               style={{
-                width: "90%",
-                padding: "10px",
+                width: "100%",
+                padding: "8px",
                 border: "1px solid #ddd",
-                borderRadius: "8px",
+                borderRadius: "4px",
               }}
-              placeholder="Enter your password"
             />
           </div>
 
@@ -209,26 +202,23 @@ const Login = ({ onLoginSuccess }) => {
               backgroundColor: "#3b82f6",
               color: "white",
               border: "none",
-              borderRadius: "8px",
+              borderRadius: "4px",
               cursor: isLoading ? "not-allowed" : "pointer",
               opacity: isLoading ? 0.7 : 1,
-              fontWeight: "bold",
-              transition: "background-color 0.3s",
             }}
-            onMouseEnter={(e) => (e.target.style.backgroundColor = "#2563eb")}
-            onMouseLeave={(e) => (e.target.style.backgroundColor = "#3b82f6")}
           >
-            {isLoading ? "Signing in..." : "Sign In"}
+            {isLoading ? "Please wait..." : "Sign In"}
           </button>
         </form>
 
         <div
           style={{
             marginTop: "20px",
+            textAlign: "center",
             color: "#666",
           }}
         >
-          Don’t have an account? {" "}
+          Don't have an account?{" "}
           <button
             onClick={() => navigate("/signup")}
             style={{
@@ -236,7 +226,6 @@ const Login = ({ onLoginSuccess }) => {
               background: "none",
               border: "none",
               cursor: "pointer",
-              fontWeight: "bold",
             }}
           >
             Sign up
@@ -246,23 +235,19 @@ const Login = ({ onLoginSuccess }) => {
         <div
           style={{
             marginTop: "20px",
+            textAlign: "center",
           }}
         >
           <button
             onClick={handleGoogleSignIn}
             style={{
-              width: "100%",
               padding: "10px",
               backgroundColor: "#db4437",
               color: "white",
               border: "none",
-              borderRadius: "8px",
+              borderRadius: "4px",
               cursor: "pointer",
-              fontWeight: "bold",
-              transition: "background-color 0.3s",
             }}
-            onMouseEnter={(e) => (e.target.style.backgroundColor = "#c4382f")}
-            onMouseLeave={(e) => (e.target.style.backgroundColor = "#db4437")}
           >
             Sign in with Google
           </button>
@@ -271,25 +256,21 @@ const Login = ({ onLoginSuccess }) => {
         <div
           style={{
             marginTop: "20px",
+            textAlign: "center",
           }}
         >
           <button
             onClick={handleReset}
             style={{
-              width: "100%",
               padding: "10px",
-              backgroundColor: "#f59e0b",
+              backgroundColor: "#db4437",
               color: "white",
               border: "none",
-              borderRadius: "8px",
+              borderRadius: "4px",
               cursor: "pointer",
-              fontWeight: "bold",
-              transition: "background-color 0.3s",
             }}
-            onMouseEnter={(e) => (e.target.style.backgroundColor = "#d97706")}
-            onMouseLeave={(e) => (e.target.style.backgroundColor = "#f59e0b")}
           >
-            Forgot Password? Send Reset Email
+            Forgot Password? Send email reset
           </button>
         </div>
       </div>
