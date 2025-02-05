@@ -1,27 +1,52 @@
 import React, { useState, useEffect } from "react";
-import logo from "./logo.svg";
-import "./App.css";
 import Login from "./Login";
 import SignUp from "./SignUp";
+//import ActivityForm from "./ActivityForm";
 import { auth } from "./Firebase";
 import { onAuthStateChanged, signOut } from "firebase/auth";
+import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import {
-  BrowserRouter as Router,
-  Routes,
-  Route,
-  Navigate,
-  useNavigate,
-} from "react-router-dom";
+  AppBar,
+  Box,
+  Toolbar,
+  Typography,
+  IconButton,
+  Avatar,
+  Container,
+  Grid,
+  Card,
+  CardContent,
+  CardMedia,
+  CircularProgress,
+  styled,
+} from "@mui/material";
+import {
+  Add as AddIcon,
+  Home as HomeIcon,
+  Logout as LogoutIcon,
+} from "@mui/icons-material";
 
-function App() {
+// Styled components
+const StyledToolbar = styled(Toolbar)({
+  display: 'flex',
+  justifyContent: 'space-between',
+});
+
+const IconsContainer = styled(Box)({
+  display: 'flex',
+  alignItems: 'center',
+  gap: '16px',
+});
+
+const App = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(null);
-  const [loading, setLoading] = useState(true); // <-- loading state
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setIsLoggedIn(!!user);
-      setLoading(false); // Done checking, no longer loading
+      setLoading(false);
     });
 
     return () => unsubscribe();
@@ -40,13 +65,59 @@ function App() {
 
   if (loading) {
     return (
-      <div style={{ textAlign: "center", marginTop: "2rem" }}>Loading...</div>
+      <Box
+        display="flex"
+        justifyContent="center"
+        alignItems="center"
+        minHeight="100vh"
+      >
+        <CircularProgress />
+      </Box>
     );
   }
 
+  const HomeComponent = () => (
+    <Box sx={{ backgroundColor: '#fafafa', minHeight: '100vh' }}>
+      {/* App Bar */}
+      <AppBar position="fixed" color="default" elevation={1}>
+        <StyledToolbar>
+          <Typography variant="h6" component="div" sx={{ fontWeight: 'bold' }}>
+            Campus Hive
+          </Typography>
+          
+          <IconsContainer>
+            <IconButton
+              color="inherit"
+              onClick={() => navigate('/create-post')}
+              title="Create Post"
+            >
+              <AddIcon />
+            </IconButton>
+            <IconButton
+              color="inherit"
+              onClick={() => navigate('/home')}
+              title="Home"
+            >
+              <HomeIcon />
+            </IconButton>
+            <IconButton
+              color="inherit"
+              onClick={handleLogout}
+              title="Logout"
+            >
+              <LogoutIcon />
+            </IconButton>
+            <Avatar sx={{ bgcolor: '#1976d2' }}>
+              {auth.currentUser?.email?.charAt(0).toUpperCase()}
+            </Avatar>
+          </IconsContainer>
+        </StyledToolbar>
+      </AppBar>
+    </Box>
+  );
+
   return (
     <Routes>
-      {/* Redirect to home or login based on login state */}
       <Route
         path="/"
         element={
@@ -57,8 +128,6 @@ function App() {
           )
         }
       />
-
-      {/* Login Route */}
       <Route
         path="/login"
         element={
@@ -69,37 +138,13 @@ function App() {
           )
         }
       />
-
-      {/* Sign Up Route */}
       <Route path="/signup" element={<SignUp />} />
-
-      {/* Home Route */}
       <Route
         path="/home"
-        element={
-          isLoggedIn ? (
-            <div className="App">
-              <header className="App-header">
-                <img src={logo} className="App-logo" alt="logo" />
-                <p>Welcome {auth.currentUser.email}</p>
-                <a
-                  className="App-link"
-                  href="https://reactjs.org"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  Learn React
-                </a>
-                <button onClick={handleLogout}>Logout</button>
-              </header>
-            </div>
-          ) : (
-            <Navigate to="/login" replace />
-          )
-        }
+        element={isLoggedIn ? <HomeComponent /> : <Navigate to="/login" replace />}
       />
     </Routes>
   );
-}
+};
 
 export default App;
