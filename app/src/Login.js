@@ -2,15 +2,22 @@ import React, { useState } from "react";
 import {
   signInWithEmailAndPassword,
   signInWithPopup,
-  getAuth,
   GoogleAuthProvider,
   sendPasswordResetEmail,
-  onAuthStateChanged,
 } from "firebase/auth";
+
+import {
+  Container,
+  Paper,
+  Typography,
+  TextField,
+  Button,
+  Box,
+  Alert,
+} from "@mui/material";
 import { auth, db } from "./Firebase";
 import { doc, setDoc } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
-import { useLocation } from "react-router-dom";
 
 const Login = ({ onLoginSuccess }) => {
   const [email, setEmail] = useState("");
@@ -19,8 +26,6 @@ const Login = ({ onLoginSuccess }) => {
   const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
-  const location = useLocation();
-  const successMessage = location.state?.message;
 
   // Handle manual login
   const handleSubmit = async (e) => {
@@ -75,6 +80,18 @@ const Login = ({ onLoginSuccess }) => {
   // Handle password reset
   const handleReset = async () => {
     console.log("Reset password");
+    if (!email) {
+      setError("Please enter an email address");
+      return;
+    }
+
+    // Email validation regex
+    const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+
+    if (!emailPattern.test(email)) {
+      setError("Please enter a valid email address");
+      return;
+    }
     setIsLoading(true);
 
     sendPasswordResetEmail(auth, email)
@@ -85,196 +102,107 @@ const Login = ({ onLoginSuccess }) => {
         );
       })
       .catch((error) => {
-        const errorCode = error.code;
         const errorMessage = error.message;
         setError(errorMessage);
       });
   };
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        backgroundColor: "#f5f5f5",
-        padding: "20px",
-      }}
-    >
-      <div
-        style={{
-          width: "100%",
-          maxWidth: "400px",
-          padding: "20px",
-          backgroundColor: "white",
-          borderRadius: "8px",
-          boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
+    <Container maxWidth="xs">
+      <Paper
+        elevation={3}
+        sx={{
+          padding: 4,
+          mt: 8,
+          borderRadius: 2,
+          textAlign: "center",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
         }}
       >
-        <h2 style={{ textAlign: "center", marginBottom: "20px" }}>
-          Welcome back
-        </h2>
-        <form onSubmit={handleSubmit}>
-          {error && (
-            <div
-              style={{
-                padding: "10px",
-                marginBottom: "20px",
-                backgroundColor: "#fee2e2",
-                color: "#dc2626",
-                borderRadius: "4px",
-              }}
-            >
-              {error}
-            </div>
-          )}
+        <Typography variant="h5" fontWeight="bold" gutterBottom>
+          Welcome Back
+        </Typography>
 
-          {(message || successMessage) && (
-            <div
-              style={{
-                padding: "10px",
-                marginBottom: "20px",
-                backgroundColor: "#ecfee2",
-                color: "#166534",
-                borderRadius: "4px",
-              }}
-            >
-              {message || successMessage}
-            </div>
-          )}
+        {error && (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            {error}
+          </Alert>
+        )}
+        {message && (
+          <Alert severity="success" sx={{ mb: 2 }}>
+            {message}
+          </Alert>
+        )}
 
-          <div style={{ marginBottom: "15px" }}>
-            <label
-              style={{
-                display: "block",
-                marginBottom: "5px",
-                fontWeight: "500",
-              }}
-            >
-              Email
-            </label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              style={{
-                width: "100%",
-                padding: "8px",
-                border: "1px solid #ddd",
-                borderRadius: "4px",
-              }}
-              placeholder="name@example.com"
-            />
-          </div>
+        <Box
+          component="form"
+          onSubmit={handleSubmit}
+          sx={{ width: "100%", mt: 2 }}
+        >
+          <TextField
+            label="Email"
+            type="email"
+            variant="outlined"
+            fullWidth
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            sx={{ mb: 2 }}
+          />
 
-          <div style={{ marginBottom: "20px" }}>
-            <label
-              style={{
-                display: "block",
-                marginBottom: "5px",
-                fontWeight: "500",
-              }}
-            >
-              Password
-            </label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              style={{
-                width: "100%",
-                padding: "8px",
-                border: "1px solid #ddd",
-                borderRadius: "4px",
-              }}
-            />
-          </div>
+          <TextField
+            label="Password"
+            type="password"
+            variant="outlined"
+            fullWidth
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            sx={{ mb: 2 }}
+          />
 
-          <button
+          <Button
             type="submit"
+            variant="contained"
+            color="primary"
+            fullWidth
             disabled={isLoading}
-            style={{
-              width: "100%",
-              padding: "10px",
-              backgroundColor: "#3b82f6",
-              color: "white",
-              border: "none",
-              borderRadius: "4px",
-              cursor: isLoading ? "not-allowed" : "pointer",
-              opacity: isLoading ? 0.7 : 1,
-            }}
+            sx={{ mb: 2 }}
           >
             {isLoading ? "Please wait..." : "Sign In"}
-          </button>
-        </form>
+          </Button>
+        </Box>
 
-        <div
-          style={{
-            marginTop: "20px",
-            textAlign: "center",
-            color: "#666",
-          }}
-        >
+        <Typography variant="body2" sx={{ mt: 1 }}>
           Don't have an account?{" "}
-          <button
-            onClick={() => navigate("/signup")}
-            style={{
-              color: "#3b82f6",
-              background: "none",
-              border: "none",
-              cursor: "pointer",
-            }}
-          >
-            Sign up
-          </button>
-        </div>
+          <Button color="primary" onClick={() => navigate("/signup")}>
+            Sign Up
+          </Button>
+        </Typography>
 
-        <div
-          style={{
-            marginTop: "20px",
-            textAlign: "center",
-          }}
+        <Button
+          variant="contained"
+          color="error"
+          fullWidth
+          sx={{ mt: 2 }}
+          onClick={handleGoogleSignIn}
         >
-          <button
-            onClick={handleGoogleSignIn}
-            style={{
-              padding: "10px",
-              backgroundColor: "#db4437",
-              color: "white",
-              border: "none",
-              borderRadius: "4px",
-              cursor: "pointer",
-            }}
-          >
-            Sign in with Google
-          </button>
-        </div>
+          Sign in with Google
+        </Button>
 
-        <div
-          style={{
-            marginTop: "20px",
-            textAlign: "center",
-          }}
+        <Button
+          variant="outlined"
+          color="error"
+          fullWidth
+          sx={{ mt: 2 }}
+          onClick={handleReset}
         >
-          <button
-            onClick={handleReset}
-            style={{
-              padding: "10px",
-              backgroundColor: "#db4437",
-              color: "white",
-              border: "none",
-              borderRadius: "4px",
-              cursor: "pointer",
-            }}
-          >
-            Forgot Password? Send email reset
-          </button>
-        </div>
-      </div>
-    </div>
+          Forgot Password? Send Reset Email
+        </Button>
+      </Paper>
+    </Container>
   );
 };
 
