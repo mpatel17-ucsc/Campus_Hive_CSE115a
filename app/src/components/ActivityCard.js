@@ -79,7 +79,7 @@ const ActivityCard = ({ activity, onVote, userId }) => {
             {activity.description}
           </Typography>
           <Typography variant="subtitle2" color="primary" sx={{ mt: 1 }}>
-            ⭐ {cappedRating.toFixed(1)} / 5
+            ⭐ {activity.rating?.toFixed(1)} / 5
           </Typography>
           <Typography variant="caption" color="textSecondary">
             {new Date(activity.createdAt?.seconds * 1000).toLocaleDateString()}

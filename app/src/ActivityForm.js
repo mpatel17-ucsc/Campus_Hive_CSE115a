@@ -11,10 +11,12 @@ import {
   Box,
 } from "@mui/material";
 
+
 const ActivityForm = () => {
   const [placeName, setPlaceName] = useState("");
   const [city, setCity] = useState("");
   const [state, setState] = useState("");
+  const [rating, setRating] = useState(0);
   const [description, setDescription] = useState("");
   const navigate = useNavigate();
 
@@ -27,6 +29,7 @@ const ActivityForm = () => {
         city,
         state,
         description,
+        rating, // Store the creator's rating
         createdAt: serverTimestamp(),
       });
 
@@ -88,6 +91,16 @@ const ActivityForm = () => {
             required
             sx={{ mb: 2 }}
           />
+
+          <TextField
+            label="Rating (0-5)"
+            type="number"
+            inputProps={{ step: 0.5, min: 0, max: 5 }}
+            value={rating}
+            onChange={(e) => setRating(parseFloat(e.target.value))}
+            required
+          />
+
 
           {/* Submit and Cancel Buttons */}
           <Box sx={{ display: "flex", justifyContent: "space-between", mt: 3 }}>
