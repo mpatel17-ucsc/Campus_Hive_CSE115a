@@ -7,27 +7,57 @@ import {
   Grid,
   Typography,
 } from "@mui/material";
-
 import { db } from "../Firebase";
-
 import { ThumbUp, ThumbDown } from "@mui/icons-material";
+import { doc, updateDoc, getDoc } from "firebase/firestore";
 
-import { doc, updateDoc, increment } from "firebase/firestore";
-
-const ActivityCard = ({ activity, onVote }) => {
+const ActivityCard = ({ activity, onVote, userId }) => {
   const handleVote = async (type) => {
     try {
       const activityRef = doc(db, "activities", activity.id);
-      await updateDoc(activityRef, {
-        [type]: increment(1),
-      });
+      const activitySnap = await getDoc(activityRef);
 
-      // Notify parent component to refresh data
+      if (!activitySnap.exists()) return;
+
+      const data = activitySnap.data();
+      const votes = data.votes || {};
+
+      // Check the user's current vote
+      const currentVote = votes[userId];
+
+      let updateData = {};
+      if (currentVote === type) {
+        // User is removing their vote
+        updateData = {
+          [type]: data[type] - 1,
+          [`votes.${userId}`]: null, // Remove user's vote from Firestore
+        };
+      } else {
+        // User is switching vote or voting for the first time
+        updateData = {
+          [type]: (data[type] || 0) + 1,
+          [`votes.${userId}`]: type,
+        };
+
+        if (currentVote) {
+          // If switching vote, remove the previous vote
+          updateData[currentVote] = data[currentVote] - 1;
+        }
+      }
+
+      await updateDoc(activityRef, updateData);
       onVote();
     } catch (error) {
       console.error("Error updating votes:", error);
     }
   };
+
+  const upvotes = activity.upvotes || 0;
+  const downvotes = activity.downvotes || 0;
+  const userVote = activity.votes?.[userId] || null;
+
+  const rating = ((upvotes - downvotes) / (upvotes + downvotes + 1)) * 5;
+  const cappedRating = Math.max(0, Math.min(5, rating)); // Keep rating between 0-5
 
   return (
     <Grid item xs={12} sm={6} md={4} lg={3} key={activity.id}>
@@ -49,7 +79,7 @@ const ActivityCard = ({ activity, onVote }) => {
             {activity.description}
           </Typography>
           <Typography variant="subtitle2" color="primary" sx={{ mt: 1 }}>
-            ⭐ {activity.rating} / 5
+            ⭐ {cappedRating.toFixed(1)} / 5
           </Typography>
           <Typography variant="caption" color="textSecondary">
             {new Date(activity.createdAt?.seconds * 1000).toLocaleDateString()}
@@ -60,14 +90,16 @@ const ActivityCard = ({ activity, onVote }) => {
             <Button
               startIcon={<ThumbUp />}
               onClick={() => handleVote("upvotes")}
+              color={userVote === "upvotes" ? "primary" : "default"}
             >
-              {activity.upvotes || 0}
+              {upvotes}
             </Button>
             <Button
               startIcon={<ThumbDown />}
               onClick={() => handleVote("downvotes")}
+              color={userVote === "downvotes" ? "error" : "default"}
             >
-              {activity.downvotes || 0}
+              {downvotes}
             </Button>
           </Box>
         </CardContent>
