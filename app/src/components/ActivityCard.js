@@ -7,49 +7,71 @@ import {
   Grid,
   Typography,
 } from "@mui/material";
-import { db } from "../Firebase";
-import { ThumbUp, ThumbDown } from "@mui/icons-material";
-import { doc, updateDoc, getDoc } from "firebase/firestore";
 
-const ActivityCard = ({ activity, onVote, userId }) => {
+import { db, auth } from "../Firebase";
+
+import { ThumbUp, ThumbDown } from "@mui/icons-material";
+
+import { doc, updateDoc, increment, getDoc, arrayUnion, arrayRemove } from "firebase/firestore";
+
+const ActivityCard = ({ activity, onVote }) => {
+  const user = auth.currentUser; // Get logged-in user
+  const activityRef = doc(db, "activities", activity.id);
+
   const handleVote = async (type) => {
     try {
-      const activityRef = doc(db, "activities", activity.id);
       const activitySnap = await getDoc(activityRef);
 
-      if (!activitySnap.exists()) return;
+      if (activitySnap.exists()) {
+        const data = activitySnap.data();
+        const userId = user.uid;
 
-      const data = activitySnap.data();
-      const votes = data.votes || {}; // Ensure votes object exists
-      const currentVote = votes[userId] || null; // Get current user vote
+        // Get previous votes
+        const hasUpvoted = data.upvotedBy?.includes(userId);
+        const hasDownvoted = data.downvotedBy?.includes(userId);
 
-      let updateData = { votes: { ...votes } }; // Preserve existing votes
-
-      if (currentVote === type) {
-        // User removes their vote
-        delete updateData.votes[userId]; // Remove user from votes
-        updateData[type] = Math.max(0, (data[type] || 0) - 1); // Decrement count
-      } else {
-        // User is voting or switching votes
-        updateData.votes[userId] = type;
-        updateData[type] = (data[type] || 0) + 1; // Increment new vote
-
-        if (currentVote) {
-          // If switching vote, decrement old vote count
-          updateData[currentVote] = Math.max(0, (data[currentVote] || 0) - 1);
+        let updateData = {};
+        if (type === "upvotes") {
+          if (hasUpvoted) {
+            // If already upvoted, remove the upvote
+            updateData = {
+              upvotes: increment(-1),
+              upvotedBy: arrayRemove(userId),
+            };
+          } else {
+            // If downvoted before, remove downvote and add upvote
+            updateData = {
+              upvotes: increment(1),
+              upvotedBy: arrayUnion(userId),
+              ...(hasDownvoted && { downvotes: increment(-1), downvotedBy: arrayRemove(userId) }),
+            };
+          }
+        } else if (type === "downvotes") {
+          if (hasDownvoted) {
+            // If already downvoted, remove the downvote
+            updateData = {
+              downvotes: increment(-1),
+              downvotedBy: arrayRemove(userId),
+            };
+          } else {
+            // If upvoted before, remove upvote and add downvote
+            updateData = {
+              downvotes: increment(1),
+              downvotedBy: arrayUnion(userId),
+              ...(hasUpvoted && { upvotes: increment(-1), upvotedBy: arrayRemove(userId) }),
+            };
+          }
         }
-      }
 
       await updateDoc(activityRef, updateData);
-      onVote(); // Refresh UI
+
+      // Notify parent component to refresh data
+      onVote();
+      }
     } catch (error) {
       console.error("Error updating votes:", error);
     }
   };
-
-  const upvotes = activity.upvotes || 0;
-  const downvotes = activity.downvotes || 0;
-  const userVote = activity.votes?.[userId] || null;
 
   return (
     <Grid item xs={12} sm={6} md={4} lg={3} key={activity.id}>
@@ -71,7 +93,7 @@ const ActivityCard = ({ activity, onVote, userId }) => {
             {activity.description}
           </Typography>
           <Typography variant="subtitle2" color="primary" sx={{ mt: 1 }}>
-            ⭐ {activity.rating?.toFixed(1)} / 5
+            ⭐ {activity.rating} / 5
           </Typography>
           <Typography variant="caption" color="textSecondary">
             {new Date(activity.createdAt?.seconds * 1000).toLocaleDateString()}
@@ -79,21 +101,18 @@ const ActivityCard = ({ activity, onVote, userId }) => {
 
           {/* Upvote / Downvote Buttons */}
           <Box sx={{ display: "flex", justifyContent: "space-between", mt: 2 }}>
-          <Button
-            startIcon={<ThumbUp />}
-            onClick={() => handleVote("upvotes")}
-            color={userVote === "upvotes" ? "primary" : "default"} // Only highlight if the user voted up
-          >
-            {upvotes}
-          </Button>
-          <Button
-            startIcon={<ThumbDown />}
-            onClick={() => handleVote("downvotes")}
-            color={userVote === "downvotes" ? "error" : "default"} // Only highlight if the user voted down
-          >
-            {downvotes}
-          </Button>
-
+            <Button
+              startIcon={<ThumbUp />}
+              onClick={() => handleVote("upvotes")}
+            >
+              {activity.upvotes || 0}
+            </Button>
+            <Button
+              startIcon={<ThumbDown />}
+              onClick={() => handleVote("downvotes")}
+            >
+              {activity.downvotes || 0}
+            </Button>
           </Box>
         </CardContent>
       </Card>
