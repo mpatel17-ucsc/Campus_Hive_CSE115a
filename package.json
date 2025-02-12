@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "lucide-react": "^0.475.0",
+    "react-swipeable-views": "^0.14.0"
+  }
+}

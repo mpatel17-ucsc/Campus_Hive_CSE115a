@@ -11,7 +11,9 @@ const HomeComponent = () => {
   const [loading, setLoading] = useState(true);
   const [fadeOut, setFadeOut] = useState(false);
   const location = useLocation();
-  const [successMessage, setSuccessMessage] = useState(location.state?.message || "");
+  const [successMessage, setSuccessMessage] = useState(
+    location.state?.message || "",
+  );
 
   const fetchActivities = async () => {
     setLoading(true);
@@ -35,11 +37,10 @@ const HomeComponent = () => {
       const timer = setTimeout(() => {
         setFadeOut(true); // Start fade-out animation
       }, 2500); // Start fade-out after 2.5s
-  
+
       return () => clearTimeout(timer);
     }
   }, [successMessage]);
-
 
   return (
     <Box

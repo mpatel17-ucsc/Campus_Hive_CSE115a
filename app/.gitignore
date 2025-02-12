@@ -2,9 +2,12 @@
 
 # dependencies
 /node_modules
+app/node_modules
+node_modules
+
 /.pnp
 .pnp.js
-
+/src/test.json
 # testing
 /coverage
 

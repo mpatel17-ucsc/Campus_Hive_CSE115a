@@ -6,7 +6,13 @@ import {
   CardMedia,
   Grid,
   Typography,
+  MobileStepper,
 } from "@mui/material";
+
+import SwipeableViews from "react-swipeable-views";
+
+import { KeyboardArrowLeft, KeyboardArrowRight } from "@mui/icons-material";
+import { useState } from "react";
 import { db } from "../Firebase";
 import { ThumbUp, ThumbDown } from "@mui/icons-material";
 import { doc, updateDoc, getDoc } from "firebase/firestore";
@@ -52,22 +58,86 @@ const ActivityCard = ({ activity, onVote, userId }) => {
     }
   };
 
+  const [activeStep, setActiveStep] = useState(0);
+  const maxSteps = activity.imageUrls ? activity.imageUrls.length : 0;
+
   const upvotes = activity.upvotes || 0;
   const downvotes = activity.downvotes || 0;
   const userVote = activity.votes?.[userId] || null;
 
-  const rating = ((upvotes - downvotes) / (upvotes + downvotes + 1)) * 5;
-  const cappedRating = Math.max(0, Math.min(5, rating)); // Keep rating between 0-5
+  // const rating = ((upvotes - downvotes) / (upvotes + downvotes + 1)) * 5;
+  // const cappedRating = Math.max(0, Math.min(5, rating)); // Keep rating between 0-5
+
+  const handleNext = () => {
+    if (activeStep < maxSteps - 1) {
+      setActiveStep((prevStep) => prevStep + 1);
+    }
+  };
+
+  const handleBack = () => {
+    if (activeStep > 0) {
+      setActiveStep((prevStep) => prevStep - 1);
+    }
+  };
 
   return (
     <Grid item xs={12} sm={6} md={4} lg={3} key={activity.id}>
       <Card sx={{ borderRadius: "12px", boxShadow: 3 }}>
-        <CardMedia
-          component="img"
-          height="200"
-          image="https://source.unsplash.com/400x300/?travel"
-          alt="Activity"
-        />
+        {maxSteps > 0 && (
+          <Box sx={{ position: "relative" }}>
+            <SwipeableViews index={activeStep} onChangeIndex={setActiveStep}>
+              {activity.imageUrls.map((image, index) => (
+                <CardMedia
+                  key={index}
+                  component="img"
+                  height="200"
+                  image={image}
+                  alt={`Activity Image ${index + 1}`}
+                />
+              ))}
+            </SwipeableViews>
+
+            {/* Left & Right Navigation Buttons */}
+            {maxSteps > 1 && (
+              <>
+                <Button
+                  size="small"
+                  onClick={handleBack}
+                  disabled={maxSteps <= 1}
+                  sx={{
+                    position: "absolute",
+                    top: "50%",
+                    left: 5,
+                    transform: "translateY(-50%)",
+                    background: "rgba(0, 0, 0, 0.5)",
+                    color: "white",
+                    minWidth: "30px",
+                    padding: "5px",
+                  }}
+                >
+                  <KeyboardArrowLeft />
+                </Button>
+                <Button
+                  size="small"
+                  onClick={handleNext}
+                  disabled={maxSteps <= 1}
+                  sx={{
+                    position: "absolute",
+                    top: "50%",
+                    right: 5,
+                    transform: "translateY(-50%)",
+                    background: "rgba(0, 0, 0, 0.5)",
+                    color: "white",
+                    minWidth: "30px",
+                    padding: "5px",
+                  }}
+                >
+                  <KeyboardArrowRight />
+                </Button>
+              </>
+            )}
+          </Box>
+        )}
         <CardContent>
           <Typography variant="h6" fontWeight="bold">
             {activity.locationName}
@@ -84,6 +154,17 @@ const ActivityCard = ({ activity, onVote, userId }) => {
           <Typography variant="caption" color="textSecondary">
             {new Date(activity.createdAt?.seconds * 1000).toLocaleDateString()}
           </Typography>
+
+          {maxSteps > 1 && (
+            <MobileStepper
+              steps={maxSteps}
+              position="static"
+              activeStep={activeStep}
+              nextButton={null}
+              backButton={null}
+              sx={{ backgroundColor: "transparent", justifyContent: "center" }}
+            />
+          )}
 
           {/* Upvote / Downvote Buttons */}
           <Box sx={{ display: "flex", justifyContent: "space-between", mt: 2 }}>
@@ -109,3 +190,4 @@ const ActivityCard = ({ activity, onVote, userId }) => {
 };
 
 export default ActivityCard;
+
