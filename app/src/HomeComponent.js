@@ -23,7 +23,7 @@ const HomeComponent = () => {
   const [fadeOut, setFadeOut] = useState(false);
   const location = useLocation();
   const [successMessage, setSuccessMessage] = useState(
-    location.state?.message || "",
+    location.state?.message || ""
   );
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedTags, setSelectedTags] = useState([]);
@@ -75,13 +75,13 @@ const HomeComponent = () => {
           (activity.description &&
             activity.description
               .toLowerCase()
-              .includes(searchTerm.toLowerCase())),
+              .includes(searchTerm.toLowerCase()))
       );
     }
 
     if (selectedTags.length > 0) {
       filtered = filtered.filter((activity) =>
-        selectedTags.every((tag) => activity.tags?.includes(tag)),
+        selectedTags.every((tag) => activity.tags?.includes(tag))
       );
     }
 
