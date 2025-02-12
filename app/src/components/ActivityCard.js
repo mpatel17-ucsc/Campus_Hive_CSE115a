@@ -6,6 +6,7 @@ import {
   CardMedia,
   Grid,
   Typography,
+  Chip,
 } from "@mui/material";
 
 import { db, auth } from "../Firebase";
@@ -98,6 +99,15 @@ const ActivityCard = ({ activity, onVote }) => {
           <Typography variant="caption" color="textSecondary">
             {new Date(activity.createdAt?.seconds * 1000).toLocaleDateString()}
           </Typography>
+
+          {/* Display Tags if Available */}
+          {activity.tags && activity.tags.length > 0 && (
+            <Box sx={{ mt: 1, display: "flex", flexWrap: "wrap", gap: 0.5 }}>
+              {activity.tags.map((tag, index) => (
+                <Chip key={index} label={tag} color="primary" size="small" />
+              ))}
+            </Box>
+          )}
 
           {/* Upvote / Downvote Buttons */}
           <Box sx={{ display: "flex", justifyContent: "space-between", mt: 2 }}>

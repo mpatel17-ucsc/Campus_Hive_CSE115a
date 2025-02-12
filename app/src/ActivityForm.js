@@ -9,12 +9,12 @@ import {
   TextField,
   Button,
   Box,
+  Chip,
   CircularProgress,
   Autocomplete,
   Rating,
 } from "@mui/material";
 import { fetchStates, fetchCities } from "./apiService"
-
 
 const ActivityForm = () => {
   const navigate = useNavigate();
@@ -22,6 +22,8 @@ const ActivityForm = () => {
   const [placeName, setPlaceName] = useState("");
   const [rating, setRating] = useState(0);
   const [description, setDescription] = useState("");
+  const [tags, setTags] = useState([]);
+  const [tagInput, setTagInput] = useState("");
 
   const [states, setStates] = useState([]);
   const [cities, setCities] = useState([]);
@@ -66,6 +68,17 @@ const ActivityForm = () => {
   }, [selectedState]);
   
 
+  const handleAddTag = () => {
+    if (tagInput.trim() && !tags.includes(tagInput.trim())) {
+      setTags([...tags, tagInput.trim()]);
+      setTagInput("");
+    }
+  };
+
+  const handleRemoveTag = (tagToRemove) => {
+    setTags(tags.filter((tag) => tag !== tagToRemove));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!selectedState || !selectedCity) {
@@ -80,6 +93,7 @@ const ActivityForm = () => {
         selectedCity,
         description,
         rating,
+        tags, // Store the tags array
         createdAt: serverTimestamp(),
       });
 
@@ -178,7 +192,6 @@ const ActivityForm = () => {
             sx={{ mb: 3 }}
           />
 
-          {/* Rating System (Star Rating) */}
           <Box sx={{ display: "flex", alignItems: "center", mb: 3 }}>
             <Typography sx={{ mr: 2 }}>Rating:</Typography>
             <Rating
@@ -187,6 +200,40 @@ const ActivityForm = () => {
               onChange={(event, newValue) => setRating(newValue)}
               precision={0.5} // Allows 0.5 star increments
             />
+          </Box>
+          {/* Tag Input */}
+          <TextField
+            label="Add Tags"
+            variant="outlined"
+            fullWidth
+            value={tagInput}
+            onChange={(e) => setTagInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                handleAddTag();
+              }
+            }}
+            sx={{ mb: 2 }}
+          />
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={handleAddTag}
+            sx={{ mb: 2 }}
+          >
+            Add Tag
+          </Button>
+
+          <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mb: 2 }}>
+            {tags.map((tag) => (
+              <Chip
+                key={tag}
+                label={tag}
+                onDelete={() => handleRemoveTag(tag)}
+                color="primary"
+              />
+            ))}
           </Box>
 
           {/* Submit and Cancel Buttons */}
