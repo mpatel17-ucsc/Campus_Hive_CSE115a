@@ -26,33 +26,28 @@ const ActivityCard = ({ activity, onVote, userId }) => {
       if (!activitySnap.exists()) return;
 
       const data = activitySnap.data();
-      const votes = data.votes || {};
+      const votes = data.votes || {}; // Ensure votes object exists
+      const currentVote = votes[userId] || null; // Get current user vote
 
-      // Check the user's current vote
-      const currentVote = votes[userId];
+      let updateData = { votes: { ...votes } }; // Preserve existing votes
 
-      let updateData = {};
       if (currentVote === type) {
-        // User is removing their vote
-        updateData = {
-          [type]: data[type] - 1,
-          [`votes.${userId}`]: null, // Remove user's vote from Firestore
-        };
+        // User removes their vote
+        delete updateData.votes[userId]; // Remove user from votes
+        updateData[type] = Math.max(0, (data[type] || 0) - 1); // Decrement count
       } else {
-        // User is switching vote or voting for the first time
-        updateData = {
-          [type]: (data[type] || 0) + 1,
-          [`votes.${userId}`]: type,
-        };
+        // User is voting or switching votes
+        updateData.votes[userId] = type;
+        updateData[type] = (data[type] || 0) + 1; // Increment new vote
 
         if (currentVote) {
-          // If switching vote, remove the previous vote
-          updateData[currentVote] = data[currentVote] - 1;
+          // If switching vote, decrement old vote count
+          updateData[currentVote] = Math.max(0, (data[currentVote] || 0) - 1);
         }
       }
 
       await updateDoc(activityRef, updateData);
-      onVote();
+      onVote(); // Refresh UI
     } catch (error) {
       console.error("Error updating votes:", error);
     }
@@ -64,9 +59,6 @@ const ActivityCard = ({ activity, onVote, userId }) => {
   const upvotes = activity.upvotes || 0;
   const downvotes = activity.downvotes || 0;
   const userVote = activity.votes?.[userId] || null;
-
-  // const rating = ((upvotes - downvotes) / (upvotes + downvotes + 1)) * 5;
-  // const cappedRating = Math.max(0, Math.min(5, rating)); // Keep rating between 0-5
 
   const handleNext = () => {
     if (activeStep < maxSteps - 1) {
@@ -171,14 +163,14 @@ const ActivityCard = ({ activity, onVote, userId }) => {
             <Button
               startIcon={<ThumbUp />}
               onClick={() => handleVote("upvotes")}
-              color={userVote === "upvotes" ? "primary" : "default"}
+              color={userVote === "upvotes" ? "primary" : "default"} // Only highlight if the user voted up
             >
               {upvotes}
             </Button>
             <Button
               startIcon={<ThumbDown />}
               onClick={() => handleVote("downvotes")}
-              color={userVote === "downvotes" ? "error" : "default"}
+              color={userVote === "downvotes" ? "error" : "default"} // Only highlight if the user voted down
             >
               {downvotes}
             </Button>
@@ -190,4 +182,3 @@ const ActivityCard = ({ activity, onVote, userId }) => {
 };
 
 export default ActivityCard;
-
