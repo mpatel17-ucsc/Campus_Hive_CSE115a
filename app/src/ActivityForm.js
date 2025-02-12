@@ -2,8 +2,6 @@ import React, { useState, useEffect } from "react";
 import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
 import { db } from "./Firebase";
-// import { Autocomplete } from "@mui/lab/Autocomplete";
-import {states} from "./locationData";
 import {
   Container,
   Paper,
@@ -15,6 +13,7 @@ import {
   Autocomplete,
   Rating,
 } from "@mui/material";
+import { fetchStates, fetchCities } from "./apiService"
 
 
 const ActivityForm = () => {
@@ -23,55 +22,64 @@ const ActivityForm = () => {
   const [placeName, setPlaceName] = useState("");
   const [rating, setRating] = useState(0);
   const [description, setDescription] = useState("");
-  const [cities, setCities] = useState([]); // Store fetched cities
-  const [loadingCities, setLoadingCities] = useState(false); // Loading state for API
+
+  const [states, setStates] = useState([]);
+  const [cities, setCities] = useState([]);
+  const [loadingStates, setLoadingStates] = useState(true);
+  const [loadingCities, setLoadingCities] = useState(false);
+
   const [selectedState, setSelectedState] = useState(null);
   const [selectedCity, setSelectedCity] = useState(null);
-  // Fetch real cities when a state is selected
+
+  // Fetch states on mount
+  useEffect(() => {
+    const getStates = async () => {
+      setLoadingStates(true);
+      try {
+        const fetchedStates = await fetchStates();
+        setStates(fetchedStates);
+      } catch (error) {
+        console.error("Error fetching states:", error);
+      }
+      setLoadingStates(false);
+    };
+    getStates();
+  }, []);
+
+  // Fetch cities when a state is selected
   useEffect(() => {
     if (selectedState) {
-      fetchCities(selectedState);
+      setLoadingCities(true);
+      fetchCities(selectedState.iso2)
+        .then((fetchedCities) => {
+          setCities(fetchedCities);
+          setLoadingCities(false);
+        })
+        .catch((error) => {
+          console.error("Error fetching cities:", error);
+          setCities([]);
+          setLoadingCities(false);
+        });
     } else {
-      setCities([]); // Reset city list when state changes
+      setCities([]);
     }
   }, [selectedState]);
-
-  const fetchCities = async (state) => {
-    setLoadingCities(true);
-    try {
-      const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?state=${state}&country=USA&featureClass=P&format=json`
-      );
-      const data = await response.json();
-  
-      // Extract and filter only city names (avoid duplicates)
-      const cityNames = [...new Set(data.map((place) => place.display_name.split(",")[0]))]
-        .filter((name) => name !== state); // Remove state name if it appears
-  
-      setCities(cityNames.length > 0 ? cityNames : ["No cities found"]);
-    } catch (error) {
-      console.error("Error fetching cities:", error);
-      setCities(["No cities found"]); // Handle API errors gracefully
-    }
-    setLoadingCities(false);
-  };
   
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    // Check if a valid city and state are selected
     if (!selectedState || !selectedCity) {
-      alert("Please select a valid city and state.");
+      alert("Please select a valid state and city.");
       return;
     }
 
     try {
       await setDoc(doc(db, "activities", new Date().toISOString()), {
         placeName,
+        selectedState: selectedState.name,
         selectedCity,
-        selectedState,
         description,
-        rating, // Store the creator's rating
+        rating,
         createdAt: serverTimestamp(),
       });
 
@@ -113,13 +121,24 @@ const ActivityForm = () => {
           {/* State Dropdown */}
           <Autocomplete
             options={states}
+            getOptionLabel={(option) => option.name}
             value={selectedState}
             onChange={(event, newValue) => {
               setSelectedState(newValue);
               setSelectedCity(null); // Reset city when state changes
             }}
+            loading={loadingStates}
             renderInput={(params) => (
-              <TextField {...params} label="State" required fullWidth />
+              <TextField
+                {...params}
+                label="State"
+                required
+                fullWidth
+                InputProps={{
+                  ...params.InputProps,
+                  endAdornment: loadingStates ? <CircularProgress size={20} /> : null,
+                }}
+              />
             )}
             sx={{ mb: 3 }}
           />
@@ -129,9 +148,19 @@ const ActivityForm = () => {
             options={cities}
             value={selectedCity}
             onChange={(event, newValue) => setSelectedCity(newValue)}
-            disabled={!selectedState || loadingCities} // Disable until state is selected
+            disabled={!selectedState || loadingCities}
+            loading={loadingCities}
             renderInput={(params) => (
-              <TextField {...params} label="City" required fullWidth />
+              <TextField
+                {...params}
+                label="City"
+                required
+                fullWidth
+                InputProps={{
+                  ...params.InputProps,
+                  endAdornment: loadingCities ? <CircularProgress size={20} /> : null,
+                }}
+              />
             )}
             sx={{ mb: 3 }}
           />
