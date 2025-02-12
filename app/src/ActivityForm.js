@@ -14,7 +14,7 @@ import {
   Autocomplete,
   Rating,
 } from "@mui/material";
-import { fetchStates, fetchCities } from "./apiService"
+import { fetchStates, fetchCities } from "./apiService";
 
 const ActivityForm = () => {
   const navigate = useNavigate();
@@ -66,7 +66,6 @@ const ActivityForm = () => {
       setCities([]);
     }
   }, [selectedState]);
-  
 
   const handleAddTag = () => {
     if (tagInput.trim() && !tags.includes(tagInput.trim())) {
@@ -89,15 +88,17 @@ const ActivityForm = () => {
     try {
       await setDoc(doc(db, "activities", new Date().toISOString()), {
         placeName,
-        selectedState: selectedState.name,
-        selectedCity,
+        state: selectedState.name,
+        city: selectedCity,
         description,
         rating,
         tags, // Store the tags array
         createdAt: serverTimestamp(),
       });
 
-      navigate("/home", { state: { message: "Activity posted successfully!" } });
+      navigate("/home", {
+        state: { message: "Activity posted successfully!" },
+      });
     } catch (error) {
       console.error("Error posting activity:", error);
       alert("An error occurred while posting the activity. Please try again.");
@@ -150,7 +151,9 @@ const ActivityForm = () => {
                 fullWidth
                 InputProps={{
                   ...params.InputProps,
-                  endAdornment: loadingStates ? <CircularProgress size={20} /> : null,
+                  endAdornment: loadingStates ? (
+                    <CircularProgress size={20} />
+                  ) : null,
                 }}
               />
             )}
@@ -172,7 +175,9 @@ const ActivityForm = () => {
                 fullWidth
                 InputProps={{
                   ...params.InputProps,
-                  endAdornment: loadingCities ? <CircularProgress size={20} /> : null,
+                  endAdornment: loadingCities ? (
+                    <CircularProgress size={20} />
+                  ) : null,
                 }}
               />
             )}
@@ -262,3 +267,4 @@ const ActivityForm = () => {
 };
 
 export default ActivityForm;
+

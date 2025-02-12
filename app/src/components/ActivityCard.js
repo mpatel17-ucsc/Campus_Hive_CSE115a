@@ -13,7 +13,14 @@ import { db, auth } from "../Firebase";
 
 import { ThumbUp, ThumbDown } from "@mui/icons-material";
 
-import { doc, updateDoc, increment, getDoc, arrayUnion, arrayRemove } from "firebase/firestore";
+import {
+  doc,
+  updateDoc,
+  increment,
+  getDoc,
+  arrayUnion,
+  arrayRemove,
+} from "firebase/firestore";
 
 const ActivityCard = ({ activity, onVote }) => {
   const user = auth.currentUser; // Get logged-in user
@@ -44,7 +51,10 @@ const ActivityCard = ({ activity, onVote }) => {
             updateData = {
               upvotes: increment(1),
               upvotedBy: arrayUnion(userId),
-              ...(hasDownvoted && { downvotes: increment(-1), downvotedBy: arrayRemove(userId) }),
+              ...(hasDownvoted && {
+                downvotes: increment(-1),
+                downvotedBy: arrayRemove(userId),
+              }),
             };
           }
         } else if (type === "downvotes") {
@@ -59,15 +69,18 @@ const ActivityCard = ({ activity, onVote }) => {
             updateData = {
               downvotes: increment(1),
               downvotedBy: arrayUnion(userId),
-              ...(hasUpvoted && { upvotes: increment(-1), upvotedBy: arrayRemove(userId) }),
+              ...(hasUpvoted && {
+                upvotes: increment(-1),
+                upvotedBy: arrayRemove(userId),
+              }),
             };
           }
         }
 
-      await updateDoc(activityRef, updateData);
+        await updateDoc(activityRef, updateData);
 
-      // Notify parent component to refresh data
-      onVote();
+        // Notify parent component to refresh data
+        onVote();
       }
     } catch (error) {
       console.error("Error updating votes:", error);
