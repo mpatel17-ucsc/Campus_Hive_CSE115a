@@ -6,6 +6,7 @@ import {
   CardMedia,
   Grid,
   Typography,
+  Chip,
 } from "@mui/material";
 import { db } from "../Firebase";
 import { ThumbUp, ThumbDown } from "@mui/icons-material";
@@ -77,23 +78,31 @@ const ActivityCard = ({ activity, onVote, userId }) => {
             {new Date(activity.createdAt?.seconds * 1000).toLocaleDateString()}
           </Typography>
 
+          {/* Display Tags if Available */}
+          {activity.tags && activity.tags.length > 0 && (
+            <Box sx={{ mt: 1, display: "flex", flexWrap: "wrap", gap: 0.5 }}>
+              {activity.tags.map((tag, index) => (
+                <Chip key={index} label={tag} color="primary" size="small" />
+              ))}
+            </Box>
+          )}
+
           {/* Upvote / Downvote Buttons */}
           <Box sx={{ display: "flex", justifyContent: "space-between", mt: 2 }}>
-          <Button
-            startIcon={<ThumbUp />}
-            onClick={() => handleVote("upvotes")}
-            color={userVote === "upvotes" ? "primary" : "default"} // Only highlight if the user voted up
-          >
-            {upvotes}
-          </Button>
-          <Button
-            startIcon={<ThumbDown />}
-            onClick={() => handleVote("downvotes")}
-            color={userVote === "downvotes" ? "error" : "default"} // Only highlight if the user voted down
-          >
-            {downvotes}
-          </Button>
-
+            <Button
+              startIcon={<ThumbUp />}
+              onClick={() => handleVote("upvotes")}
+              color={userVote === "upvotes" ? "primary" : "default"}
+            >
+              {upvotes}
+            </Button>
+            <Button
+              startIcon={<ThumbDown />}
+              onClick={() => handleVote("downvotes")}
+              color={userVote === "downvotes" ? "error" : "default"}
+            >
+              {downvotes}
+            </Button>
           </Box>
         </CardContent>
       </Card>
