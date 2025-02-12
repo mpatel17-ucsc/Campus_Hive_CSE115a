@@ -16,41 +16,45 @@ const ActivityCard = ({ activity, onVote, userId }) => {
     try {
       const activityRef = doc(db, "activities", activity.id);
       const activitySnap = await getDoc(activityRef);
-
+  
       if (!activitySnap.exists()) return;
-
+  
       const data = activitySnap.data();
-      const votes = data.votes || {};
-
-      // Check the user's current vote
-      const currentVote = votes[userId];
-
+      const votes = data.votes || {}; // Get current votes
+      const currentVote = votes[userId]; // User's current vote (if any)
+  
+      // Ensure counts exist
+      const upvotes = data.upvotes || 0;
+      const downvotes = data.downvotes || 0;
+  
       let updateData = {};
+  
       if (currentVote === type) {
-        // User is removing their vote
+        // User is removing their existing vote
         updateData = {
-          [type]: data[type] - 1,
-          [`votes.${userId}`]: null, // Remove user's vote from Firestore
+          [type]: Math.max(0, data[type] - 1), // Ensure count doesn't go negative
+          [`votes.${userId}`]: null, // Remove user vote
         };
       } else {
-        // User is switching vote or voting for the first time
+        // User is voting or switching their vote
         updateData = {
-          [type]: (data[type] || 0) + 1,
-          [`votes.${userId}`]: type,
+          [type]: (data[type] || 0) + 1, // Add new vote
+          [`votes.${userId}`]: type, // Store user’s vote
         };
-
+  
         if (currentVote) {
-          // If switching vote, remove the previous vote
-          updateData[currentVote] = data[currentVote] - 1;
+          // Remove previous vote if switching
+          updateData[currentVote] = Math.max(0, data[currentVote] - 1);
         }
       }
-
+  
       await updateDoc(activityRef, updateData);
-      onVote();
+      onVote(); // Refresh UI
     } catch (error) {
       console.error("Error updating votes:", error);
     }
   };
+  
 
   const upvotes = activity.upvotes || 0;
   const downvotes = activity.downvotes || 0;
