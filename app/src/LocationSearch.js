@@ -6,7 +6,7 @@ import {
   Autocomplete,
 } from "@react-google-maps/api";
 
-const GOOGLE_MAPS_API_KEY = "AIzaSyAABgunwos_W1EU5waahjLzifuUX8tERnc"; // Replace with your key
+const GOOGLE_MAPS_API_KEY = process.env.REACT_APP_maps;
 
 const mapContainerStyle = {
   width: "100%",
