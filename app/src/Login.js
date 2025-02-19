@@ -5,7 +5,6 @@ import {
   GoogleAuthProvider,
   sendPasswordResetEmail,
 } from "firebase/auth";
-
 import {
   Container,
   Paper,
@@ -25,22 +24,16 @@ const Login = ({ onLoginSuccess }) => {
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isResetLoading, setIsResetLoading] = useState(false); // Separate loading state for password reset
   const navigate = useNavigate();
 
-  // Handle manual login
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
     setIsLoading(true);
-
     try {
-      const userCredential = await signInWithEmailAndPassword(
-        auth,
-        email,
-        password,
-      );
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
-
       await setDoc(doc(db, "users", user.uid), {
         email: user.email,
         lastLogin: new Date().toISOString(),
@@ -54,7 +47,6 @@ const Login = ({ onLoginSuccess }) => {
     }
   };
 
-  // Handle Google login
   const handleGoogleSignIn = async () => {
     setError("");
     setIsLoading(true);
@@ -62,12 +54,10 @@ const Login = ({ onLoginSuccess }) => {
     try {
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
-
       await setDoc(doc(db, "users", user.uid), {
         email: user.email,
         lastLogin: new Date().toISOString(),
       });
-
       onLoginSuccess();
       navigate("/home");
     } catch (err) {
@@ -77,70 +67,103 @@ const Login = ({ onLoginSuccess }) => {
     }
   };
 
-  // Handle password reset
   const handleReset = async () => {
-    console.log("Reset password");
     if (!email) {
       setError("Please enter an email address");
       return;
     }
-
-    // Email validation regex
     const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-
     if (!emailPattern.test(email)) {
       setError("Please enter a valid email address");
       return;
     }
-    setIsLoading(true);
-
+    setIsResetLoading(true); // Set loading for password reset
     sendPasswordResetEmail(auth, email)
       .then(() => {
         setError("");
-        setMessage(
-          "If an account with this email exists, a password reset email has been sent.",
-        );
+        setMessage("If an account with this email exists, a password reset email has been sent.");
       })
       .catch((error) => {
-        const errorMessage = error.message;
-        setError(errorMessage);
+        setError(error.message);
+      })
+      .finally(() => {
+        setIsResetLoading(false); // Reset loading after the reset process completes
       });
   };
 
   return (
-    <Container maxWidth="xs">
+    <Container
+      maxWidth="false"
+      sx={{
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        minHeight: "100vh",
+        minWidth: "100vw",
+        backgroundImage: "url('https://www.patternpictures.com/wp-content/uploads/Honeycomb-Gold-And-Blue-Background-Pattern171109-1600x924.jpg')",
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        flexDirection: "row", // Align items horizontally
+      }}
+    >
+      {/* Left Side with Title and Description */}
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+          width: "50%",
+          color: "white",
+          padding: 4,
+        }}
+      >
+        <Typography sx={{
+          padding: 4,
+          borderRadius: 2,
+          textAlign: "center",
+          backgroundColor: "black",
+          color: "white",
+          display: "flex",
+          flexDirection: "column",
+        }} variant="h3" fontWeight="bold" gutterBottom>
+          Campus Hive
+        </Typography>
+        <Typography variant="h6" sx={{
+          padding: 4,
+          borderRadius: 2,
+          textAlign: "center",
+          backgroundColor: "black",
+          color: "white",
+          display: "flex",
+          flexDirection: "column",
+        }}>
+          Discover top-rated experiences, hidden gems, and honest reviews from students and locals alike!
+        </Typography>
+      </Box>
+
+      {/* Right Side with Form */}
       <Paper
         elevation={3}
         sx={{
           padding: 4,
-          mt: 8,
           borderRadius: 2,
           textAlign: "center",
+          backgroundColor: "black",
+          color: "white",
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
+          width: "50%", // Take up half the screen
         }}
       >
         <Typography variant="h5" fontWeight="bold" gutterBottom>
           Welcome Back
         </Typography>
 
-        {error && (
-          <Alert severity="error" sx={{ mb: 2 }}>
-            {error}
-          </Alert>
-        )}
-        {message && (
-          <Alert severity="success" sx={{ mb: 2 }}>
-            {message}
-          </Alert>
-        )}
+        {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+        {message && <Alert severity="success" sx={{ mb: 2 }}>{message}</Alert>}
 
-        <Box
-          component="form"
-          onSubmit={handleSubmit}
-          sx={{ width: "100%", mt: 2 }}
-        >
+        <Box component="form" onSubmit={handleSubmit} sx={{ width: "100%", mt: 2 }}>
           <TextField
             label="Email"
             type="email"
@@ -149,7 +172,7 @@ const Login = ({ onLoginSuccess }) => {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
-            sx={{ mb: 2 }}
+            sx={{ mb: 2, input: { color: "white" }, label: { color: "white" }, fieldset: { borderColor: "white" } }}
           />
 
           <TextField
@@ -160,46 +183,41 @@ const Login = ({ onLoginSuccess }) => {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
-            sx={{ mb: 2 }}
+            sx={{ mb: 1, input: { color: "white" }, label: { color: "white" }, fieldset: { borderColor: "white" } }}
           />
+
+          <Typography variant="caption" color="gray" sx={{ cursor: "pointer", mb: 2, display: "flex", justifyContent: "flex-end" }} onClick={handleReset}>
+            Forgot Password?
+          </Typography>
 
           <Button
             type="submit"
             variant="contained"
-            color="primary"
             fullWidth
             disabled={isLoading}
-            sx={{ mb: 2 }}
+            sx={{
+              mb: 1,
+              backgroundColor: "black",
+              border: "2px solid yellow",
+              color: "yellow",
+              '&:hover': { backgroundColor: "yellow", color: "black" },
+            }}
           >
             {isLoading ? "Please wait..." : "Sign In"}
           </Button>
         </Box>
 
-        <Typography variant="body2" sx={{ mt: 1 }}>
-          Don't have an account?{" "}
-          <Button color="primary" onClick={() => navigate("/signup")}>
-            Sign Up
-          </Button>
+        <Typography
+          variant="caption"
+          color="gray"
+          sx={{ cursor: "pointer", mt: 1 }}
+          onClick={() => navigate("/signup")}
+        >
+          New? Sign-Up
         </Typography>
 
-        <Button
-          variant="contained"
-          color="error"
-          fullWidth
-          sx={{ mt: 2 }}
-          onClick={handleGoogleSignIn}
-        >
+        <Button variant="contained" color="error" fullWidth sx={{ mt: 2 }} onClick={handleGoogleSignIn}>
           Sign in with Google
-        </Button>
-
-        <Button
-          variant="outlined"
-          color="error"
-          fullWidth
-          sx={{ mt: 2 }}
-          onClick={handleReset}
-        >
-          Forgot Password? Send Reset Email
         </Button>
       </Paper>
     </Container>
