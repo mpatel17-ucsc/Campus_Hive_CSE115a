@@ -1,15 +1,5 @@
 import React, { useEffect, useState } from "react";
-import {
-  Container,
-  CircularProgress,
-  Box,
-  Alert,
-  Grid,
-  MenuItem,
-  Select,
-  InputLabel,
-  FormControl,
-} from "@mui/material";
+import { Container, CircularProgress, Box, Alert, Grid } from "@mui/material";
 import { db } from "./Firebase";
 import { collection, getDocs } from "firebase/firestore";
 import { useLocation } from "react-router-dom";
@@ -22,9 +12,11 @@ const HomeComponent = () => {
   const [loading, setLoading] = useState(true);
   const [fadeOut, setFadeOut] = useState(false);
   const location = useLocation();
-  const [successMessage, setSuccessMessage] = useState(
-    location.state?.message || ""
-  );
+
+  // const [successMessage, setSuccessMessage] = useState(
+  //   location.state?.message || "",
+  // );
+  const successMessage = location.state?.message || "";
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedTags, setSelectedTags] = useState([]);
 
@@ -75,13 +67,13 @@ const HomeComponent = () => {
           (activity.description &&
             activity.description
               .toLowerCase()
-              .includes(searchTerm.toLowerCase()))
+              .includes(searchTerm.toLowerCase())),
       );
     }
 
     if (selectedTags.length > 0) {
       filtered = filtered.filter((activity) =>
-        selectedTags.every((tag) => activity.tags?.includes(tag))
+        selectedTags.every((tag) => activity.tags?.includes(tag)),
       );
     }
 

@@ -16,6 +16,7 @@ import { KeyboardArrowLeft, KeyboardArrowRight } from "@mui/icons-material";
 import { useState } from "react";
 import { ThumbUp, ThumbDown } from "@mui/icons-material";
 import { db, auth } from "../Firebase";
+// import { debounce } from "lodash";
 
 import CommentsSection from "./CommentSection";
 
@@ -28,21 +29,37 @@ import {
   arrayRemove,
 } from "firebase/firestore";
 
-const ActivityCard = ({ activity, onVote }) => {
+const ActivityCard = ({ activity }) => {
   const user = auth.currentUser; // Get logged-in user
   const activityRef = doc(db, "activities", activity.id);
+
+  const imgLen = activity.imageUrls ? activity.imageUrls.length : 0;
+  const [activeStep, setActiveStep] = useState(0);
+
+  const [hasUpvoted, setHasUpvoted] = useState(
+    activity.upvotedBy?.includes(user.uid),
+  );
+  const [hasDownvoted, setHasDownvoted] = useState(
+    activity.downvotedBy?.includes(user.uid),
+  );
+
+  // const debouncedUpdate = debounce(async (updateData) => {
+  //   await updateDoc(activityRef, updateData);
+  // }, 500);
+
+  const [upvotes, setUpvotes] = useState(activity.upvotes || 0);
+  const [downvotes, setDownvotes] = useState(activity.downvotes || 0);
+
+  const test = () => {
+    console.log("hasUpvoted", hasUpvoted);
+  };
 
   const handleVote = async (type) => {
     try {
       const activitySnap = await getDoc(activityRef);
 
       if (activitySnap.exists()) {
-        const data = activitySnap.data();
         const userId = user.uid;
-
-        // Get previous votes
-        const hasUpvoted = data.upvotedBy?.includes(userId);
-        const hasDownvoted = data.downvotedBy?.includes(userId);
 
         let updateData = {};
         if (type === "upvotes") {
@@ -52,6 +69,8 @@ const ActivityCard = ({ activity, onVote }) => {
               upvotes: increment(-1),
               upvotedBy: arrayRemove(userId),
             };
+            setHasUpvoted(false);
+            setUpvotes((prev) => prev - 1);
           } else {
             // If downvoted before, remove downvote and add upvote
             updateData = {
@@ -62,6 +81,12 @@ const ActivityCard = ({ activity, onVote }) => {
                 downvotedBy: arrayRemove(userId),
               }),
             };
+            if (hasDownvoted) {
+              setDownvotes((prev) => prev - 1);
+              setHasDownvoted(false);
+            }
+            setHasUpvoted(true);
+            setUpvotes((prev) => prev + 1);
           }
         } else if (type === "downvotes") {
           if (hasDownvoted) {
@@ -70,6 +95,8 @@ const ActivityCard = ({ activity, onVote }) => {
               downvotes: increment(-1),
               downvotedBy: arrayRemove(userId),
             };
+            setHasDownvoted(false);
+            setDownvotes((prev) => prev - 1);
           } else {
             // If upvoted before, remove upvote and add downvote
             updateData = {
@@ -80,28 +107,25 @@ const ActivityCard = ({ activity, onVote }) => {
                 upvotedBy: arrayRemove(userId),
               }),
             };
+            if (hasUpvoted) {
+              setUpvotes((prev) => prev - 1);
+              setHasUpvoted(false);
+            }
+            setHasDownvoted(true);
+            setDownvotes((prev) => prev + 1);
           }
         }
 
+        // debouncedUpdate(updateData);
         await updateDoc(activityRef, updateData);
-
-        // Notify parent component to refresh data
-        onVote();
       }
     } catch (error) {
       console.error("Error updating votes:", error);
     }
   };
 
-  const [activeStep, setActiveStep] = useState(0);
-  const maxSteps = activity.imageUrls ? activity.imageUrls.length : 0;
-
-  // const upvotes = activity.upvotes || 0;
-  // const downvotes = activity.downvotes || 0;
-  // const userVote = activity.votes?.[userId] || null;
-
   const handleNext = () => {
-    if (activeStep < maxSteps - 1) {
+    if (activeStep < imgLen - 1) {
       setActiveStep((prevStep) => prevStep + 1);
     }
   };
@@ -115,7 +139,7 @@ const ActivityCard = ({ activity, onVote }) => {
   return (
     <Grid item xs={12} sm={6} md={4} lg={3} key={activity.id}>
       <Card sx={{ borderRadius: "12px", boxShadow: 3 }}>
-        {maxSteps > 0 && (
+        {imgLen > 0 && (
           <Box sx={{ position: "relative" }}>
             <SwipeableViews index={activeStep} onChangeIndex={setActiveStep}>
               {activity.imageUrls.map((image, index) => (
@@ -130,12 +154,12 @@ const ActivityCard = ({ activity, onVote }) => {
             </SwipeableViews>
 
             {/* Left & Right Navigation Buttons */}
-            {maxSteps > 1 && (
+            {imgLen > 1 && (
               <>
                 <Button
                   size="small"
                   onClick={handleBack}
-                  disabled={maxSteps <= 1}
+                  disabled={imgLen <= 1}
                   sx={{
                     position: "absolute",
                     top: "50%",
@@ -152,7 +176,7 @@ const ActivityCard = ({ activity, onVote }) => {
                 <Button
                   size="small"
                   onClick={handleNext}
-                  disabled={maxSteps <= 1}
+                  disabled={imgLen <= 1}
                   sx={{
                     position: "absolute",
                     top: "50%",
@@ -196,9 +220,9 @@ const ActivityCard = ({ activity, onVote }) => {
             </Box>
           )}
 
-          {maxSteps > 1 && (
+          {imgLen > 1 && (
             <MobileStepper
-              steps={maxSteps}
+              steps={imgLen}
               position="static"
               activeStep={activeStep}
               nextButton={null}
@@ -212,19 +236,23 @@ const ActivityCard = ({ activity, onVote }) => {
             <Button
               startIcon={<ThumbUp />}
               onClick={() => handleVote("upvotes")}
+              sx={{ color: hasUpvoted ? "green" : "default" }} // ✅ Uses default color
             >
-              {activity.upvotes || 0}
+              {upvotes}
             </Button>
             <Button
               startIcon={<ThumbDown />}
               onClick={() => handleVote("downvotes")}
+              sx={{ color: hasDownvoted ? "red" : "default" }} // ✅ Uses default color
             >
-              {activity.downvotes || 0}
+              {downvotes}
             </Button>
           </Box>
 
           <CommentsSection activityId={activity.id} />
         </CardContent>
+
+        <Button onClick={() => test()}>test</Button>
       </Card>
     </Grid>
   );

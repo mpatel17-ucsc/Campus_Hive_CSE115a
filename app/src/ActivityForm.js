@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { doc, setDoc, serverTimestamp } from "firebase/firestore";
-import { useDropzone } from "react-dropzone"
+import { useDropzone } from "react-dropzone";
 import { ref, uploadBytes, getDownloadURL, listAll } from "firebase/storage";
 import { useNavigate } from "react-router-dom";
 import { db, storage, auth } from "./Firebase";
@@ -18,7 +18,7 @@ import {
 } from "@mui/material";
 import { fetchStates, fetchCities } from "./apiService";
 
-const MAX_IMAGES = 5
+const MAX_IMAGES = 5;
 const MAX_IMAGE_SIZE_MB = 1;
 const MAX_TOTAL_IMAGES = 30;
 const ALLOWED_FORMATS = ["image/jpeg", "image/png", "image/jpg"];
@@ -95,29 +95,30 @@ const ActivityForm = () => {
   };
 
   // Drag-and-Drop logic
-  const { getRootProps, getInputProps, isDragActive, isDragReject } = useDropzone({
-    accept: ALLOWED_FORMATS.join(","), // Accept only images
-    maxSize: MAX_IMAGE_SIZE_MB * 1024 * 1024,
-    onDrop: (acceptedFiles, fileRejections) => {
-      // Handle errors
-      if (fileRejections.length > 0) {
-        alert("Some files were rejected. Please upload valid images only.");
-        return;
-      }
+  const { getRootProps, getInputProps, isDragActive, isDragReject } =
+    useDropzone({
+      accept: ALLOWED_FORMATS.join(","), // Accept only images
+      maxSize: MAX_IMAGE_SIZE_MB * 1024 * 1024,
+      onDrop: (acceptedFiles, fileRejections) => {
+        // Handle errors
+        if (fileRejections.length > 0) {
+          alert("Some files were rejected. Please upload valid images only.");
+          return;
+        }
 
-      if (imageFiles.length + acceptedFiles.length > MAX_IMAGES) {
-        alert(`You can only upload up to ${MAX_IMAGES} images.`);
-        return;
-      }
+        if (imageFiles.length + acceptedFiles.length > MAX_IMAGES) {
+          alert(`You can only upload up to ${MAX_IMAGES} images.`);
+          return;
+        }
 
-      // Add new images to previews
-      setImageFiles((prev) => [...prev, ...acceptedFiles]);
-      setImagePreviews((prev) => [
-        ...prev,
-        ...acceptedFiles.map((file) => URL.createObjectURL(file)),
-      ]);
-    },
-  });
+        // Add new images to previews
+        setImageFiles((prev) => [...prev, ...acceptedFiles]);
+        setImagePreviews((prev) => [
+          ...prev,
+          ...acceptedFiles.map((file) => URL.createObjectURL(file)),
+        ]);
+      },
+    });
 
   const handleImageChange = (e) => {
     const files = Array.from(e.target.files);
@@ -367,7 +368,7 @@ const ActivityForm = () => {
               Upload Images
             </Button>
             <Typography sx={{ mb: 2 }}>(Up to 5)</Typography>
-            
+
             {/* Drag-and-Drop UI Box */}
             <Box
               {...getRootProps()}
@@ -384,10 +385,13 @@ const ActivityForm = () => {
             >
               <input {...getInputProps()} />
               {isDragActive ? (
-                <Typography variant="body1">Drop your images here...</Typography>
+                <Typography variant="body1">
+                  Drop your images here...
+                </Typography>
               ) : (
                 <Typography variant="body1">
-                  Drag & drop images here, or click to select files (Max {MAX_IMAGES})
+                  Drag & drop images here, or click to select files (Max{" "}
+                  {MAX_IMAGES})
                 </Typography>
               )}
             </Box>
