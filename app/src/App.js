@@ -6,6 +6,7 @@ import Login from "./Login";
 import SignUp from "./SignUp";
 import ActivityForm from "./ActivityForm";
 import HomeComponent from "./HomeComponent";
+import LocationSearch from "./LocationSearch";
 import { auth } from "./Firebase";
 import { onAuthStateChanged } from "firebase/auth";
 
@@ -82,10 +83,15 @@ const App = () => {
             isLoggedIn ? <ActivityForm /> : <Navigate to="/login" replace />
           }
         />
+        <Route
+          path="/test"
+          element={
+            isLoggedIn ? <LocationSearch /> : <Navigate to="/login" replace />
+          }
+        />
       </Routes>
     </ThemeProvider>
   );
 };
 
 export default App;
-

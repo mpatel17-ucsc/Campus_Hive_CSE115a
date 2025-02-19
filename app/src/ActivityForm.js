@@ -4,6 +4,8 @@ import { useDropzone } from "react-dropzone";
 import { ref, uploadBytes, getDownloadURL, listAll } from "firebase/storage";
 import { useNavigate } from "react-router-dom";
 import { db, storage, auth } from "./Firebase";
+import LocationPicker from "./LocationSearch";
+
 import {
   Container,
   Paper,
@@ -22,6 +24,7 @@ const MAX_IMAGES = 5;
 const MAX_IMAGE_SIZE_MB = 1;
 const MAX_TOTAL_IMAGES = 30;
 const ALLOWED_FORMATS = ["image/jpeg", "image/png", "image/jpg"];
+
 const ActivityForm = () => {
   const user = auth.currentUser;
   const navigate = useNavigate();
@@ -42,39 +45,44 @@ const ActivityForm = () => {
   const [imageFiles, setImageFiles] = useState([]);
   const [imagePreviews, setImagePreviews] = useState([]);
 
+  const handleLocationSelect = (location) => {
+    console.log("Selected Location:", location);
+    setSelectedCity(location.city);
+    setSelectedState(location.state);
+  };
   // Fetch states on mount
-  useEffect(() => {
-    const getStates = async () => {
-      setLoadingStates(true);
-      try {
-        const fetchedStates = await fetchStates();
-        setStates(fetchedStates);
-      } catch (error) {
-        console.error("Error fetching states:", error);
-      }
-      setLoadingStates(false);
-    };
-    getStates();
-  }, []);
+  //useEffect(() => {
+  //  const getStates = async () => {
+  //    setLoadingStates(true);
+  //    try {
+  //      const fetchedStates = await fetchStates();
+  //      setStates(fetchedStates);
+  //    } catch (error) {
+  //      console.error("Error fetching states:", error);
+  //    }
+  //    setLoadingStates(false);
+  //  };
+  //  getStates();
+  //}, []);
 
   // Fetch cities when a state is selected
-  useEffect(() => {
-    if (selectedState) {
-      setLoadingCities(true);
-      fetchCities(selectedState.iso2)
-        .then((fetchedCities) => {
-          setCities(fetchedCities);
-          setLoadingCities(false);
-        })
-        .catch((error) => {
-          console.error("Error fetching cities:", error);
-          setCities([]);
-          setLoadingCities(false);
-        });
-    } else {
-      setCities([]);
-    }
-  }, [selectedState]);
+  //useEffect(() => {
+  //  if (selectedState) {
+  //    setLoadingCities(true);
+  //    fetchCities(selectedState.iso2)
+  //      .then((fetchedCities) => {
+  //        setCities(fetchedCities);
+  //        setLoadingCities(false);
+  //      })
+  //      .catch((error) => {
+  //        console.error("Error fetching cities:", error);
+  //        setCities([]);
+  //        setLoadingCities(false);
+  //      });
+  //  } else {
+  //    setCities([]);
+  //  }
+  //}, [selectedState]);
 
   const handleAddTag = () => {
     if (tagInput.trim() && !tags.includes(tagInput.trim())) {
@@ -182,11 +190,11 @@ const ActivityForm = () => {
 
       await setDoc(doc(db, "activities", new Date().toISOString()), {
         placeName,
-        state: selectedState.name,
+        state: selectedState,
         city: selectedCity,
         description,
         rating,
-        tags, // Store the tags array
+        tags,
         createdAt: serverTimestamp(),
         userID: user.uid,
         userName: user.displayName,
@@ -233,55 +241,57 @@ const ActivityForm = () => {
           />
 
           {/* State Dropdown */}
-          <Autocomplete
-            options={states}
-            getOptionLabel={(option) => option.name}
-            value={selectedState}
-            onChange={(event, newValue) => {
-              setSelectedState(newValue);
-              setSelectedCity(null); // Reset city when state changes
-            }}
-            loading={loadingStates}
-            renderInput={(params) => (
-              <TextField
-                {...params}
-                label="State"
-                required
-                fullWidth
-                InputProps={{
-                  ...params.InputProps,
-                  endAdornment: loadingStates ? (
-                    <CircularProgress size={20} />
-                  ) : null,
-                }}
-              />
-            )}
-            sx={{ mb: 3 }}
-          />
+          {/* <Autocomplete */}
+          {/*   options={states} */}
+          {/*   getOptionLabel={(option) => option.name} */}
+          {/*   value={selectedState} */}
+          {/*   onChange={(event, newValue) => { */}
+          {/*     setSelectedState(newValue); */}
+          {/*     setSelectedCity(null); // Reset city when state changes */}
+          {/*   }} */}
+          {/*   loading={loadingStates} */}
+          {/*   renderInput={(params) => ( */}
+          {/*     <TextField */}
+          {/*       {...params} */}
+          {/*       label="State" */}
+          {/*       required */}
+          {/*       fullWidth */}
+          {/*       InputProps={{ */}
+          {/*         ...params.InputProps, */}
+          {/*         endAdornment: loadingStates ? ( */}
+          {/*           <CircularProgress size={20} /> */}
+          {/*         ) : null, */}
+          {/*       }} */}
+          {/*     /> */}
+          {/*   )} */}
+          {/*   sx={{ mb: 3 }} */}
+          {/* /> */}
 
           {/* City Dropdown */}
-          <Autocomplete
-            options={cities}
-            value={selectedCity}
-            onChange={(event, newValue) => setSelectedCity(newValue)}
-            disabled={!selectedState || loadingCities}
-            loading={loadingCities}
-            renderInput={(params) => (
-              <TextField
-                {...params}
-                label="City"
-                required
-                fullWidth
-                InputProps={{
-                  ...params.InputProps,
-                  endAdornment: loadingCities ? (
-                    <CircularProgress size={20} />
-                  ) : null,
-                }}
-              />
-            )}
-            sx={{ mb: 3 }}
-          />
+          {/* <Autocomplete */}
+          {/*   options={cities} */}
+          {/*   value={selectedCity} */}
+          {/*   onChange={(event, newValue) => setSelectedCity(newValue)} */}
+          {/*   disabled={!selectedState || loadingCities} */}
+          {/*   loading={loadingCities} */}
+          {/*   renderInput={(params) => ( */}
+          {/*     <TextField */}
+          {/*       {...params} */}
+          {/*       label="City" */}
+          {/*       required */}
+          {/*       fullWidth */}
+          {/*       InputProps={{ */}
+          {/*         ...params.InputProps, */}
+          {/*         endAdornment: loadingCities ? ( */}
+          {/*           <CircularProgress size={20} /> */}
+          {/*         ) : null, */}
+          {/*       }} */}
+          {/*     /> */}
+          {/*   )} */}
+          {/*   sx={{ mb: 3 }} */}
+          {/* /> */}
+
+          <LocationPicker onLocationSelect={handleLocationSelect} />
 
           {/* Description Input */}
           <TextField
