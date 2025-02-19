@@ -17,6 +17,8 @@ import { useState } from "react";
 import { ThumbUp, ThumbDown } from "@mui/icons-material";
 import { db, auth } from "../Firebase";
 
+import CommentsSection from "./CommentSection";
+
 import {
   doc,
   updateDoc,
@@ -220,6 +222,8 @@ const ActivityCard = ({ activity, onVote }) => {
               {activity.downvotes || 0}
             </Button>
           </Box>
+
+          <CommentsSection activityId={activity.id} />
         </CardContent>
       </Card>
     </Grid>
