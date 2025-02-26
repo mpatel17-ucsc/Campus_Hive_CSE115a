@@ -38,7 +38,7 @@ const LocationPicker = ({ onLocationSelect }) => {
       const place = autocompleteRef.current.getPlace();
       if (place && place.geometry) {
         // Get lat/lng
-        const location = {
+        const coords = {
           lat: place.geometry.location.lat(),
           lng: place.geometry.location.lng(),
         };
@@ -57,11 +57,11 @@ const LocationPicker = ({ onLocationSelect }) => {
         }
         console.log("City:", city, "State:", state);
 
-        setMarkerPosition(location);
+        setMarkerPosition(coords);
 
         // Pass data to parent
         if (city && state) {
-          onLocationSelect({ city, state, location });
+          onLocationSelect({ city, state, ...coords });
         }
       }
     }

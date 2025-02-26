@@ -41,25 +41,27 @@ import {
   arrayRemove,
 } from "firebase/firestore";
 
+const googleMapsApiKey = process.env.REACT_APP_maps;
+
 const ActivityCard = ({ activity, owner = false, onDelete }) => {
   const user = auth.currentUser; // Get logged-in user
   const activityRef = doc(db, "activities", activity.id);
 
   const [activeStep, setActiveStep] = useState(0);
 
-  const googleMapsApiKey = process.env.REACT_APP_maps;
-
   // Create a static map URL based on the location.
-  const staticMapUrl = `https://maps.googleapis.com/maps/api/staticmap?center=${encodeURIComponent(
-    activity.city + ", " + activity.state,
-  )}&zoom=13&size=600x300&maptype=roadmap&markers=color:red%7C${encodeURIComponent(
-    activity.city + ", " + activity.state,
-  )}&key=${googleMapsApiKey}`;
-
-  //
-  // const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+  // const staticMapUrl = `https://maps.googleapis.com/maps/api/staticmap?center=${encodeURIComponent(
   //   activity.city + ", " + activity.state,
-  // )}`;
+  // )}&zoom=13&size=600x300&maptype=roadmap&markers=color:red%7C${encodeURIComponent(
+  //   activity.city + ", " + activity.state,
+  // )}&key=${googleMapsApiKey}`;
+
+  let mapsUrl = "";
+
+  if (activity.location && activity.location.lat && activity.location.lng) {
+    const coords = `${activity.location.lat},${activity.location.lng}`;
+    mapsUrl = `https://www.google.com/maps?q=${coords}`;
+  }
 
   const [hasUpvoted, setHasUpvoted] = useState(
     activity.upvotedBy?.includes(user.uid),
@@ -85,9 +87,14 @@ const ActivityCard = ({ activity, owner = false, onDelete }) => {
   };
 
   // If user images exist, append them after the static map image.
-  const additionalImages = activity.imageUrls || [];
-  // const imagesToDisplay = [staticMapUrl, ...additionalImages];
-  const imagesToDisplay = additionalImages;
+  const init = activity.imageUrls || [];
+  let imagesToDisplay = init;
+
+  // if (init.length == 0) {
+  //   imagesToDisplay = [staticMapUrl, ...init];
+  // }
+  // const imagesToDisplay = [staticMapUrl, ...init];
+  // const imagesToDisplay = additionalImages;
   const totalImages = imagesToDisplay.length;
 
   const handleVote = async (type) => {
@@ -274,15 +281,15 @@ const ActivityCard = ({ activity, owner = false, onDelete }) => {
           </Typography>
           <Box sx={{ display: "flex", alignItems: "center" }}>
             <Typography variant="body2" color="textSecondary">
-              {activity.city}, {activity.state}
+              {activity.location?.city}, {activity.location?.state}
             </Typography>
-            {/* <IconButton */}
-            {/*   color="primary" */}
-            {/*   onClick={() => window.open(googleMapsUrl, "_blank")} */}
-            {/*   sx={{ ml: 0.5 }}  */}
-            {/* > */}
-            {/*   <Room fontSize="small" /> */}
-            {/* </IconButton> */}
+            <IconButton
+              color="primary"
+              onClick={() => window.open(mapsUrl, "_blank")}
+              sx={{ ml: 0.5 }}
+            >
+              <Room fontSize="small" />
+            </IconButton>
           </Box>
           <Typography variant="body1" sx={{ mt: 1 }}>
             {activity.description}
@@ -340,3 +347,7 @@ const ActivityCard = ({ activity, owner = false, onDelete }) => {
 };
 
 export default ActivityCard;
+
+// const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+//   activity.city + ", " + activity.state,
+// )}`;

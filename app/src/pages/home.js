@@ -1,6 +1,7 @@
 import { db, auth } from "../util/firebase";
 import TopBar from "../components/TopBar";
 import ActivityCard from "../components/ActivityCard";
+import HomeMap from "../components/HomeMap";
 
 import React, { useEffect, useState, useMemo } from "react";
 import { collection, getDocs, deleteDoc, doc } from "firebase/firestore";
@@ -72,13 +73,13 @@ const Home = () => {
           (activity.description &&
             activity.description
               .toLowerCase()
-              .includes(searchTerm.toLowerCase()))
+              .includes(searchTerm.toLowerCase())),
       );
     }
     // Filter only based on selected tags
     if (selectedTags.length > 0) {
       filtered = filtered.filter((activity) =>
-        selectedTags.every((tag) => activity.tags?.includes(tag))
+        selectedTags.every((tag) => activity.tags?.includes(tag)),
       );
     }
 
@@ -95,9 +96,14 @@ const Home = () => {
         }
         return [matches, nonMatches];
       },
-      [[], []]
+      [[], []],
     );
   }, [filteredActivities, userID]);
+
+  let locations = activities
+    .map((activity) => activity.location) // Extract locations
+    .filter((location) => location !== null && location !== undefined); // Remove null/undefined
+  console.log("locations", locations);
 
   const handleDelete = (id) => async () => {
     console.log("partent", id);
@@ -149,6 +155,7 @@ const Home = () => {
               {successMessage}
             </Alert>
           )}
+          <HomeMap locations={locations} />
 
           <Grid container spacing={2}>
             {others.map((activity) => (
