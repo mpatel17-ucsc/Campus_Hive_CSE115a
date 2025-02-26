@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useRef } from "react";
-import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 import { useDropzone } from "react-dropzone";
-import { ref, uploadBytes, getDownloadURL, listAll } from "firebase/storage";
 import { useNavigate } from "react-router-dom";
-import { db, storage, auth } from "./Firebase";
-import LocationPicker from "./LocationSearch";
+
+import { doc, setDoc, serverTimestamp } from "firebase/firestore";
+import { ref, uploadBytes, getDownloadURL, listAll } from "firebase/storage";
+
+import { db, storage, auth } from "../util/firebase";
+import LocationPicker from "../components/LocationPicker";
 
 import {
   Container,
@@ -18,14 +20,13 @@ import {
   Autocomplete,
   Rating,
 } from "@mui/material";
-import { fetchStates, fetchCities } from "./apiService";
 
 const MAX_IMAGES = 5;
 const MAX_IMAGE_SIZE_MB = 1;
 const MAX_TOTAL_IMAGES = 30;
 const ALLOWED_FORMATS = ["image/jpeg", "image/png", "image/jpg"];
 
-const ActivityForm = () => {
+const CreateActivity = () => {
   const user = auth.currentUser;
   const navigate = useNavigate();
 
@@ -483,4 +484,4 @@ const ActivityForm = () => {
   );
 };
 
-export default ActivityForm;
+export default CreateActivity;

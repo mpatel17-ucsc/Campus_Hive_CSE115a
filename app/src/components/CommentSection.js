@@ -8,7 +8,7 @@ import {
   ListItem,
   ListItemText,
 } from "@mui/material";
-import { db, auth } from "../Firebase";
+import { db, auth } from "../util/firebase";
 import {
   collection,
   query,
@@ -101,3 +101,4 @@ const CommentsSection = ({ activityId }) => {
 };
 
 export default CommentsSection;
+

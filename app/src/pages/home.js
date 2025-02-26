@@ -1,12 +1,13 @@
+import { db } from "../util/firebase";
+import TopBar from "../components/TopBar";
+import ActivityCard from "../components/ActivityCard";
+
 import React, { useEffect, useState } from "react";
-import { Container, CircularProgress, Box, Alert, Grid } from "@mui/material";
-import { db } from "./Firebase";
 import { collection, getDocs } from "firebase/firestore";
 import { useLocation } from "react-router-dom";
-import TopBar from "./components/TopBar";
-import ActivityCard from "./components/ActivityCard";
+import { Container, CircularProgress, Box, Alert, Grid } from "@mui/material";
 
-const HomeComponent = () => {
+const Home = () => {
   const [activities, setActivities] = useState([]);
   const [filteredActivities, setFilteredActivities] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -136,4 +137,4 @@ const HomeComponent = () => {
   );
 };
 
-export default HomeComponent;
+export default Home;

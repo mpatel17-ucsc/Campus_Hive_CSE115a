@@ -14,7 +14,7 @@ import {
   Box,
   Alert,
 } from "@mui/material";
-import { auth, db } from "./Firebase";
+import { auth, db } from "../util/firebase";
 import { doc, setDoc } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
 
@@ -32,7 +32,11 @@ const Login = ({ onLoginSuccess }) => {
     setError("");
     setIsLoading(true);
     try {
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const userCredential = await signInWithEmailAndPassword(
+        auth,
+        email,
+        password,
+      );
       const user = userCredential.user;
       await setDoc(doc(db, "users", user.uid), {
         email: user.email,
@@ -81,7 +85,9 @@ const Login = ({ onLoginSuccess }) => {
     sendPasswordResetEmail(auth, email)
       .then(() => {
         setError("");
-        setMessage("If an account with this email exists, a password reset email has been sent.");
+        setMessage(
+          "If an account with this email exists, a password reset email has been sent.",
+        );
       })
       .catch((error) => {
         setError(error.message);
@@ -100,7 +106,8 @@ const Login = ({ onLoginSuccess }) => {
         alignItems: "center",
         minHeight: "100vh",
         minWidth: "100vw",
-        backgroundImage: "url('https://www.patternpictures.com/wp-content/uploads/Honeycomb-Gold-And-Blue-Background-Pattern171109-1600x924.jpg')",
+        backgroundImage:
+          "url('https://www.patternpictures.com/wp-content/uploads/Honeycomb-Gold-And-Blue-Background-Pattern171109-1600x924.jpg')",
         backgroundSize: "cover",
         backgroundPosition: "center",
         flexDirection: "row", // Align items horizontally
@@ -117,27 +124,36 @@ const Login = ({ onLoginSuccess }) => {
           padding: 4,
         }}
       >
-        <Typography sx={{
-          padding: 4,
-          borderRadius: 2,
-          textAlign: "center",
-          backgroundColor: "black",
-          color: "white",
-          display: "flex",
-          flexDirection: "column",
-        }} variant="h3" fontWeight="bold" gutterBottom>
+        <Typography
+          sx={{
+            padding: 4,
+            borderRadius: 2,
+            textAlign: "center",
+            backgroundColor: "black",
+            color: "white",
+            display: "flex",
+            flexDirection: "column",
+          }}
+          variant="h3"
+          fontWeight="bold"
+          gutterBottom
+        >
           Campus Hive
         </Typography>
-        <Typography variant="h6" sx={{
-          padding: 4,
-          borderRadius: 2,
-          textAlign: "center",
-          backgroundColor: "black",
-          color: "white",
-          display: "flex",
-          flexDirection: "column",
-        }}>
-          Discover top-rated experiences, hidden gems, and honest reviews from students and locals alike!
+        <Typography
+          variant="h6"
+          sx={{
+            padding: 4,
+            borderRadius: 2,
+            textAlign: "center",
+            backgroundColor: "black",
+            color: "white",
+            display: "flex",
+            flexDirection: "column",
+          }}
+        >
+          Discover top-rated experiences, hidden gems, and honest reviews from
+          students and locals alike!
         </Typography>
       </Box>
 
@@ -160,10 +176,22 @@ const Login = ({ onLoginSuccess }) => {
           Welcome Back
         </Typography>
 
-        {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
-        {message && <Alert severity="success" sx={{ mb: 2 }}>{message}</Alert>}
+        {error && (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            {error}
+          </Alert>
+        )}
+        {message && (
+          <Alert severity="success" sx={{ mb: 2 }}>
+            {message}
+          </Alert>
+        )}
 
-        <Box component="form" onSubmit={handleSubmit} sx={{ width: "100%", mt: 2 }}>
+        <Box
+          component="form"
+          onSubmit={handleSubmit}
+          sx={{ width: "100%", mt: 2 }}
+        >
           <TextField
             label="Email"
             type="email"
@@ -172,7 +200,12 @@ const Login = ({ onLoginSuccess }) => {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
-            sx={{ mb: 2, input: { color: "white" }, label: { color: "white" }, fieldset: { borderColor: "white" } }}
+            sx={{
+              mb: 2,
+              input: { color: "white" },
+              label: { color: "white" },
+              fieldset: { borderColor: "white" },
+            }}
           />
 
           <TextField
@@ -183,10 +216,25 @@ const Login = ({ onLoginSuccess }) => {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
-            sx={{ mb: 1, input: { color: "white" }, label: { color: "white" }, fieldset: { borderColor: "white" } }}
+            sx={{
+              mb: 1,
+              input: { color: "white" },
+              label: { color: "white" },
+              fieldset: { borderColor: "white" },
+            }}
           />
 
-          <Typography variant="caption" color="gray" sx={{ cursor: "pointer", mb: 2, display: "flex", justifyContent: "flex-end" }} onClick={handleReset}>
+          <Typography
+            variant="caption"
+            color="gray"
+            sx={{
+              cursor: "pointer",
+              mb: 2,
+              display: "flex",
+              justifyContent: "flex-end",
+            }}
+            onClick={handleReset}
+          >
             Forgot Password?
           </Typography>
 
@@ -200,7 +248,7 @@ const Login = ({ onLoginSuccess }) => {
               backgroundColor: "black",
               border: "2px solid yellow",
               color: "yellow",
-              '&:hover': { backgroundColor: "yellow", color: "black" },
+              "&:hover": { backgroundColor: "yellow", color: "black" },
             }}
           >
             {isLoading ? "Please wait..." : "Sign In"}
@@ -216,7 +264,13 @@ const Login = ({ onLoginSuccess }) => {
           New? Sign-Up
         </Typography>
 
-        <Button variant="contained" color="error" fullWidth sx={{ mt: 2 }} onClick={handleGoogleSignIn}>
+        <Button
+          variant="contained"
+          color="error"
+          fullWidth
+          sx={{ mt: 2 }}
+          onClick={handleGoogleSignIn}
+        >
           Sign in with Google
         </Button>
       </Paper>

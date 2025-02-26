@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { createUserWithEmailAndPassword } from "firebase/auth"; // firebase function for creating user with email and password
-import { auth, db } from "./Firebase"; // firebase auth and firestore
+import { auth, db } from "../util/firebase";
 import { doc, setDoc, serverTimestamp } from "firebase/firestore"; // firebase functions for storing user data in firestore
 import { useNavigate } from "react-router-dom"; // react router dom for navigation/redirection
 
@@ -157,4 +157,3 @@ const SignUp = () => {
 };
 
 export default SignUp;
-

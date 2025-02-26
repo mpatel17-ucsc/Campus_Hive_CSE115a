@@ -15,8 +15,7 @@ import SwipeableViews from "react-swipeable-views";
 import { KeyboardArrowLeft, KeyboardArrowRight } from "@mui/icons-material";
 import { useState } from "react";
 import { ThumbUp, ThumbDown } from "@mui/icons-material";
-import { db, auth } from "../Firebase";
-// import { debounce } from "lodash";
+import { db, auth } from "../util/firebase";
 
 import CommentsSection from "./CommentSection";
 

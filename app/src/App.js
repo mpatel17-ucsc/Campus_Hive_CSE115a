@@ -2,12 +2,12 @@ import React, { useState, useEffect } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 import { CircularProgress, Box } from "@mui/material";
-import Login from "./Login";
-import SignUp from "./SignUp";
-import ActivityForm from "./ActivityForm";
-import HomeComponent from "./HomeComponent";
-import LocationSearch from "./LocationSearch";
-import { auth } from "./Firebase";
+
+import Login from "./pages/login";
+import SignUp from "./pages/signUp";
+import CreateActivity from "./pages/createActivity";
+import Home from "./pages/home";
+import { auth } from "./util/firebase";
 import { onAuthStateChanged } from "firebase/auth";
 
 const theme = createTheme(); // Create a default Material-UI theme
@@ -37,61 +37,47 @@ const App = () => {
       </Box>
     );
   }
+  if (!isLoggedIn) {
+    return (
+      <ThemeProvider theme={theme}>
+        <Routes>
+          <Route path="/" element={<Navigate to="/login" replace />} />
+          <Route
+            path="/login"
+            element={<Login onLoginSuccess={() => setIsLoggedIn(true)} />}
+          />
+          <Route path="/signup" element={<SignUp />} />
+        </Routes>
+      </ThemeProvider>
+    );
+  } else {
+    return (
+      <ThemeProvider theme={theme}>
+        <Routes>
+          {/* Redirect to home or login based on login state */}
+          <Route path="/" element={<Navigate to="/home" replace />} />
 
-  return (
-    <ThemeProvider theme={theme}>
-      <Routes>
-        {/* Redirect to home or login based on login state */}
-        <Route
-          path="/"
-          element={
-            isLoggedIn ? (
-              <Navigate to="/home" replace />
-            ) : (
-              <Navigate to="/login" replace />
-            )
-          }
-        />
+          {/* Sign Up Route */}
+          <Route path="/signup" element={<SignUp />} />
 
-        {/* Login Route */}
-        <Route
-          path="/login"
-          element={
-            isLoggedIn ? (
-              <Navigate to="/home" replace />
-            ) : (
-              <Login onLoginSuccess={() => setIsLoggedIn(true)} />
-            )
-          }
-        />
+          {/* Home Route - Now correctly showing HomeComponent */}
+          <Route
+            path="/home"
+            element={<Home onLogout={() => setIsLoggedIn(false)} />}
+          />
 
-        {/* Sign Up Route */}
-        <Route path="/signup" element={<SignUp />} />
+          <Route path="/create-activity" element={<CreateActivity />} />
 
-        {/* Home Route - Now correctly showing HomeComponent */}
-        <Route
-          path="/home"
-          element={
-            isLoggedIn ? <HomeComponent /> : <Navigate to="/login" replace />
-          }
-        />
-
-        {/* Create Activity Route */}
-        <Route
-          path="/create-activity"
-          element={
-            isLoggedIn ? <ActivityForm /> : <Navigate to="/login" replace />
-          }
-        />
-        <Route
-          path="/test"
-          element={
-            isLoggedIn ? <LocationSearch /> : <Navigate to="/login" replace />
-          }
-        />
-      </Routes>
-    </ThemeProvider>
-  );
+          {/* <Route */}
+          {/*   path="/test" */}
+          {/*   element={ */}
+          {/*     isLoggedIn ? <LocationPicker /> : <Navigate to="/login" replace /> */}
+          {/*   } */}
+          {/* /> */}
+        </Routes>
+      </ThemeProvider>
+    );
+  }
 };
 
 export default App;

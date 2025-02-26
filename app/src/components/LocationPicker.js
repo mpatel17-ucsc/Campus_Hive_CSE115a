@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   GoogleMap,
   LoadScript,
@@ -23,6 +23,12 @@ const LocationPicker = ({ onLocationSelect }) => {
   const onLoad = (mapInstance) => {
     setMap(mapInstance);
   };
+
+  useEffect(() => {
+    if (map) {
+      console.log("Map has been set:", map);
+    }
+  }, [map]);
 
   const onPlaceChanged = () => {
     if (autocompleteRef.current) {
