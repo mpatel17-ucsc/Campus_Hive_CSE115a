@@ -41,9 +41,11 @@ const CreateActivity = () => {
   const [imagePreviews, setImagePreviews] = useState([]);
 
   const handleLocationSelect = (location) => {
+    const { city, state, coords } = location;
     console.log("Selected Location:", location);
-    setSelectedCity(location.city);
-    setSelectedState(location.state);
+    console.log("Selected coor :", coords);
+    setSelectedCity(city);
+    setSelectedState(state);
   };
 
   const handleAddTag = () => {

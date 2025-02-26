@@ -7,6 +7,7 @@ import Login from "./pages/login";
 import SignUp from "./pages/signUp";
 import CreateActivity from "./pages/createActivity";
 import Home from "./pages/home";
+// import TopBar from "./components/test";
 import { auth } from "./util/firebase";
 import { onAuthStateChanged } from "firebase/auth";
 
@@ -68,12 +69,7 @@ const App = () => {
 
           <Route path="/create-activity" element={<CreateActivity />} />
 
-          {/* <Route */}
-          {/*   path="/test" */}
-          {/*   element={ */}
-          {/*     isLoggedIn ? <LocationPicker /> : <Navigate to="/login" replace /> */}
-          {/*   } */}
-          {/* /> */}
+          {/* <Route path="/test" element={<TopBar />} /> */}
         </Routes>
       </ThemeProvider>
     );

@@ -1,9 +1,9 @@
-import { db } from "../util/firebase";
+import { db, auth } from "../util/firebase";
 import TopBar from "../components/TopBar";
 import ActivityCard from "../components/ActivityCard";
 
-import React, { useEffect, useState } from "react";
-import { collection, getDocs } from "firebase/firestore";
+import React, { useEffect, useState, useMemo } from "react";
+import { collection, getDocs, deleteDoc, doc } from "firebase/firestore";
 import { useLocation } from "react-router-dom";
 import { Container, CircularProgress, Box, Alert, Grid } from "@mui/material";
 
@@ -14,12 +14,10 @@ const Home = () => {
   const [fadeOut, setFadeOut] = useState(false);
   const location = useLocation();
 
-  // const [successMessage, setSuccessMessage] = useState(
-  //   location.state?.message || "",
-  // );
   const successMessage = location.state?.message || "";
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedTags, setSelectedTags] = useState([]);
+  const userID = auth.currentUser.uid;
 
   const fetchActivities = async () => {
     setLoading(true);
@@ -81,6 +79,30 @@ const Home = () => {
     setFilteredActivities(filtered);
   }, [searchTerm, selectedTags, activities]);
 
+  const [myActs, others] = useMemo(() => {
+    return filteredActivities.reduce(
+      ([matches, nonMatches], activity) => {
+        if (activity.userID === userID) {
+          matches.push(activity);
+        } else {
+          nonMatches.push(activity);
+        }
+        return [matches, nonMatches];
+      },
+      [[], []],
+    );
+  }, [filteredActivities, userID]);
+
+  const handleDelete = (id) => async () => {
+    console.log("partent", id);
+    try {
+      await deleteDoc(doc(db, "activities", id));
+      setActivities((prev) => prev.filter((activity) => activity.id !== id));
+    } catch (error) {
+      console.error("Error deleting activity:", error);
+    }
+  };
+
   return (
     <Box
       sx={{
@@ -123,11 +145,19 @@ const Home = () => {
           )}
 
           <Grid container spacing={2}>
-            {filteredActivities.map((activity) => (
+            {others.map((activity) => (
+              <ActivityCard key={activity.id} activity={activity} />
+            ))}
+          </Grid>
+          <h1>My Activities</h1>
+          <hr style={{ width: "100%", border: "1px solid #ccc" }} />
+          <Grid container spacing={2}>
+            {myActs.map((activity) => (
               <ActivityCard
                 key={activity.id}
                 activity={activity}
-                onVote={fetchActivities}
+                owner={true}
+                onDelete={handleDelete(activity.id)}
               />
             ))}
           </Grid>

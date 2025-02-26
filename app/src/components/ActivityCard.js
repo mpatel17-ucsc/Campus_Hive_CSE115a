@@ -1,23 +1,33 @@
 import {
-  Button,
+  Grid,
   Card,
-  Box,
   CardContent,
   CardMedia,
-  Grid,
   Typography,
+  Box,
+  Button,
+  IconButton,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
   Chip,
   MobileStepper,
 } from "@mui/material";
 
 import SwipeableViews from "react-swipeable-views";
 
-import { KeyboardArrowLeft, KeyboardArrowRight } from "@mui/icons-material";
+import {
+  KeyboardArrowLeft,
+  KeyboardArrowRight,
+  ThumbUp,
+  ThumbDown,
+  Room,
+  Close,
+} from "@mui/icons-material";
 import { useState } from "react";
-import { ThumbUp, ThumbDown } from "@mui/icons-material";
 import { db, auth } from "../util/firebase";
-import { IconButton } from "@mui/material";
-import { Room } from "@mui/icons-material";
 // import { debounce } from "lodash";
 
 import CommentsSection from "./CommentSection";
@@ -31,11 +41,25 @@ import {
   arrayRemove,
 } from "firebase/firestore";
 
-const ActivityCard = ({ activity }) => {
+const ActivityCard = ({ activity, owner = false, onDelete }) => {
   const user = auth.currentUser; // Get logged-in user
   const activityRef = doc(db, "activities", activity.id);
 
   const [activeStep, setActiveStep] = useState(0);
+
+  const googleMapsApiKey = process.env.REACT_APP_maps;
+
+  // Create a static map URL based on the location.
+  const staticMapUrl = `https://maps.googleapis.com/maps/api/staticmap?center=${encodeURIComponent(
+    activity.city + ", " + activity.state,
+  )}&zoom=13&size=600x300&maptype=roadmap&markers=color:red%7C${encodeURIComponent(
+    activity.city + ", " + activity.state,
+  )}&key=${googleMapsApiKey}`;
+
+  //
+  // const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+  //   activity.city + ", " + activity.state,
+  // )}`;
 
   const [hasUpvoted, setHasUpvoted] = useState(
     activity.upvotedBy?.includes(user.uid),
@@ -48,24 +72,22 @@ const ActivityCard = ({ activity }) => {
   //   await updateDoc(activityRef, updateData);
   // }, 500);
 
+  const [openDialog, setOpenDialog] = useState(false);
+
   const [upvotes, setUpvotes] = useState(activity.upvotes || 0);
   const [downvotes, setDownvotes] = useState(activity.downvotes || 0);
 
-  const googleMapsApiKey = process.env.REACT_APP_maps;
-  // Create a static map URL based on the location.
-  const staticMapUrl = `https://maps.googleapis.com/maps/api/staticmap?center=${encodeURIComponent(
-    activity.city + ", " + activity.state,
-  )}&zoom=13&size=600x300&maptype=roadmap&markers=color:red%7C${encodeURIComponent(
-    activity.city + ", " + activity.state,
-  )}&key=${googleMapsApiKey}`;
-
-  const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-    activity.city + ", " + activity.state,
-  )}`;
+  const handleDelete = () => {
+    setOpenDialog(false);
+    if (onDelete) {
+      onDelete();
+    }
+  };
 
   // If user images exist, append them after the static map image.
   const additionalImages = activity.imageUrls || [];
-  const imagesToDisplay = [staticMapUrl, ...additionalImages];
+  // const imagesToDisplay = [staticMapUrl, ...additionalImages];
+  const imagesToDisplay = additionalImages;
   const totalImages = imagesToDisplay.length;
 
   const handleVote = async (type) => {
@@ -153,6 +175,44 @@ const ActivityCard = ({ activity }) => {
   return (
     <Grid item xs={12} sm={6} md={4} lg={3} key={activity.id}>
       <Card sx={{ borderRadius: "12px", boxShadow: 3 }}>
+        {/* Remove Button (Only if Owner) */}
+        {owner && (
+          <>
+            <IconButton
+              sx={
+                {
+                  // position: "absolute",
+                  // top: 5,
+                  // right: 5,
+                  // background: "rgba(255, 255, 255, 0.7)",
+                  // "&:hover": { background: "rgba(255, 255, 255, 1)" },
+                }
+              }
+              onClick={() => setOpenDialog(true)}
+            >
+              <Close />
+            </IconButton>
+
+            {/* Confirmation Dialog */}
+            <Dialog open={openDialog} onClose={() => setOpenDialog(false)}>
+              <DialogTitle>Confirm Delete</DialogTitle>
+              <DialogContent>
+                <DialogContentText>
+                  Are you sure you want to delete this activity? This action
+                  cannot be undone.
+                </DialogContentText>
+              </DialogContent>
+              <DialogActions>
+                <Button onClick={() => setOpenDialog(false)} color="primary">
+                  Cancel
+                </Button>
+                <Button onClick={handleDelete} color="error">
+                  Delete
+                </Button>
+              </DialogActions>
+            </Dialog>
+          </>
+        )}
         {totalImages > 0 && (
           <Box sx={{ position: "relative" }}>
             <SwipeableViews index={activeStep} onChangeIndex={setActiveStep}>
@@ -216,13 +276,13 @@ const ActivityCard = ({ activity }) => {
             <Typography variant="body2" color="textSecondary">
               {activity.city}, {activity.state}
             </Typography>
-            <IconButton
-              color="primary"
-              onClick={() => window.open(googleMapsUrl, "_blank")}
-              sx={{ ml: 0.5 }} // Adds a small gap between text and icon
-            >
-              <Room fontSize="small" /> {/* Replace with any icon */}
-            </IconButton>
+            {/* <IconButton */}
+            {/*   color="primary" */}
+            {/*   onClick={() => window.open(googleMapsUrl, "_blank")} */}
+            {/*   sx={{ ml: 0.5 }}  */}
+            {/* > */}
+            {/*   <Room fontSize="small" /> */}
+            {/* </IconButton> */}
           </Box>
           <Typography variant="body1" sx={{ mt: 1 }}>
             {activity.description}

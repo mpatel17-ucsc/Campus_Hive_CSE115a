@@ -58,7 +58,7 @@ const LocationPicker = ({ onLocationSelect }) => {
 
         // Pass data to parent
         if (city && state) {
-          onLocationSelect({ city, state });
+          onLocationSelect({ city, state, location });
         }
       }
     }
