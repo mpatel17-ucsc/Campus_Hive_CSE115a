@@ -33,7 +33,6 @@ const ActivityCard = ({ activity }) => {
   const user = auth.currentUser; // Get logged-in user
   const activityRef = doc(db, "activities", activity.id);
 
-  const imgLen = activity.imageUrls ? activity.imageUrls.length : 0;
   const [activeStep, setActiveStep] = useState(0);
 
   const [hasUpvoted, setHasUpvoted] = useState(
@@ -53,6 +52,21 @@ const ActivityCard = ({ activity }) => {
   const test = () => {
     console.log("hasUpvoted", hasUpvoted);
   };
+
+  const googleMapsApiKey = process.env.REACT_APP_maps
+  // Create a static map URL based on the location.
+  const staticMapUrl = `https://maps.googleapis.com/maps/api/staticmap?center=${encodeURIComponent(
+    activity.city + ", " + activity.state
+  )}&zoom=13&size=600x300&maptype=roadmap&markers=color:red%7C${encodeURIComponent(
+    activity.city + ", " + activity.state
+  )}&key=${googleMapsApiKey}`;
+
+
+
+  // If user images exist, append them after the static map image.
+  const additionalImages = activity.imageUrls || [];
+  const imagesToDisplay = [staticMapUrl, ...additionalImages];
+  const totalImages = imagesToDisplay.length;
 
   const handleVote = async (type) => {
     try {
@@ -125,7 +139,7 @@ const ActivityCard = ({ activity }) => {
   };
 
   const handleNext = () => {
-    if (activeStep < imgLen - 1) {
+    if (activeStep < totalImages - 1) {
       setActiveStep((prevStep) => prevStep + 1);
     }
   };
@@ -139,27 +153,29 @@ const ActivityCard = ({ activity }) => {
   return (
     <Grid item xs={12} sm={6} md={4} lg={3} key={activity.id}>
       <Card sx={{ borderRadius: "12px", boxShadow: 3 }}>
-        {imgLen > 0 && (
+        {totalImages > 0 && (
           <Box sx={{ position: "relative" }}>
             <SwipeableViews index={activeStep} onChangeIndex={setActiveStep}>
-              {activity.imageUrls.map((image, index) => (
+              {imagesToDisplay.map((image, index) => (
                 <CardMedia
                   key={index}
                   component="img"
                   height="200"
                   image={image}
-                  alt={`Activity Image ${index + 1}`}
+                  alt={
+                    index === 0 ? "Location Map" : `Activity Image ${index}`
+                  }
                 />
               ))}
             </SwipeableViews>
 
             {/* Left & Right Navigation Buttons */}
-            {imgLen > 1 && (
+            {totalImages > 1 && (
               <>
                 <Button
                   size="small"
                   onClick={handleBack}
-                  disabled={imgLen <= 1}
+                  disabled={totalImages <= 1}
                   sx={{
                     position: "absolute",
                     top: "50%",
@@ -176,7 +192,7 @@ const ActivityCard = ({ activity }) => {
                 <Button
                   size="small"
                   onClick={handleNext}
-                  disabled={imgLen <= 1}
+                  disabled={totalImages <= 1}
                   sx={{
                     position: "absolute",
                     top: "50%",
@@ -220,9 +236,9 @@ const ActivityCard = ({ activity }) => {
             </Box>
           )}
 
-          {imgLen > 1 && (
+          {totalImages > 1 && (
             <MobileStepper
-              steps={imgLen}
+              steps={totalImages}
               position="static"
               activeStep={activeStep}
               nextButton={null}
@@ -252,7 +268,6 @@ const ActivityCard = ({ activity }) => {
           <CommentsSection activityId={activity.id} />
         </CardContent>
 
-        <Button onClick={() => test()}>test</Button>
       </Card>
     </Grid>
   );
