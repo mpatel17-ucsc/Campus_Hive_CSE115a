@@ -7,6 +7,7 @@ import TopBar from "./components/TopBar";
 import ActivityCard from "./components/ActivityCard";
 
 const HomeComponent = () => {
+  // State variables 
   const [activities, setActivities] = useState([]);
   const [filteredActivities, setFilteredActivities] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -16,13 +17,19 @@ const HomeComponent = () => {
   // const [successMessage, setSuccessMessage] = useState(
   //   location.state?.message || "",
   // );
+
+  // Retrieve Success message of navigation state
   const successMessage = location.state?.message || "";
+
+  // State variables for search and tag filters
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedTags, setSelectedTags] = useState([]);
 
+  // Function to fetch activities from Firestore
   const fetchActivities = async () => {
     setLoading(true);
     try {
+      // Fetch all activity documents
       const querySnapshot = await getDocs(collection(db, "activities"));
       const activitiesList = querySnapshot.docs.map((doc) => ({
         id: doc.id,
@@ -36,7 +43,7 @@ const HomeComponent = () => {
     }
     setLoading(false);
   };
-
+   // Function to extract unique tags from all activities
   const getUniqueTags = () => {
     const tags = new Set();
     activities.forEach((activity) => {
@@ -44,7 +51,7 @@ const HomeComponent = () => {
     });
     return Array.from(tags);
   };
-
+  // Fetch activities when component mounts and handle success message timeout
   useEffect(() => {
     fetchActivities();
     if (successMessage) {
@@ -53,7 +60,7 @@ const HomeComponent = () => {
       return () => clearTimeout(timer);
     }
   }, [successMessage]);
-
+  // Filter activities whenever search term, selected tags, or activities change
   useEffect(() => {
     let filtered = activities;
 
@@ -70,7 +77,7 @@ const HomeComponent = () => {
               .includes(searchTerm.toLowerCase())),
       );
     }
-
+    // Filter only based on selected tags
     if (selectedTags.length > 0) {
       filtered = filtered.filter((activity) =>
         selectedTags.every((tag) => activity.tags?.includes(tag)),
