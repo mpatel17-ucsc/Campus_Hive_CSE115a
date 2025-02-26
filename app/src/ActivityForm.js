@@ -49,40 +49,8 @@ const ActivityForm = () => {
     console.log("Selected Location:", location);
     setSelectedCity(location.city);
     setSelectedState(location.state);
+    
   };
-  // Fetch states on mount
-  //useEffect(() => {
-  //  const getStates = async () => {
-  //    setLoadingStates(true);
-  //    try {
-  //      const fetchedStates = await fetchStates();
-  //      setStates(fetchedStates);
-  //    } catch (error) {
-  //      console.error("Error fetching states:", error);
-  //    }
-  //    setLoadingStates(false);
-  //  };
-  //  getStates();
-  //}, []);
-
-  // Fetch cities when a state is selected
-  //useEffect(() => {
-  //  if (selectedState) {
-  //    setLoadingCities(true);
-  //    fetchCities(selectedState.iso2)
-  //      .then((fetchedCities) => {
-  //        setCities(fetchedCities);
-  //        setLoadingCities(false);
-  //      })
-  //      .catch((error) => {
-  //        console.error("Error fetching cities:", error);
-  //        setCities([]);
-  //        setLoadingCities(false);
-  //      });
-  //  } else {
-  //    setCities([]);
-  //  }
-  //}, [selectedState]);
 
   const handleAddTag = () => {
     if (tagInput.trim() && !tags.includes(tagInput.trim())) {
