@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useRef } from "react";
 import { useDropzone } from "react-dropzone";
 import { useNavigate } from "react-router-dom";
 
@@ -16,8 +16,6 @@ import {
   Button,
   Box,
   Chip,
-  CircularProgress,
-  Autocomplete,
   Rating,
 } from "@mui/material";
 
@@ -36,10 +34,6 @@ const CreateActivity = () => {
   const [tags, setTags] = useState([]);
   const [tagInput, setTagInput] = useState("");
 
-  const [states, setStates] = useState([]);
-  const [cities, setCities] = useState([]);
-  const [loadingStates, setLoadingStates] = useState(true);
-  const [loadingCities, setLoadingCities] = useState(false);
   const [selectedState, setSelectedState] = useState(null);
   const [selectedCity, setSelectedCity] = useState(null);
 
@@ -50,7 +44,6 @@ const CreateActivity = () => {
     console.log("Selected Location:", location);
     setSelectedCity(location.city);
     setSelectedState(location.state);
-    
   };
 
   const handleAddTag = () => {
@@ -208,57 +201,6 @@ const CreateActivity = () => {
             required
             sx={{ mb: 3 }}
           />
-
-          {/* State Dropdown */}
-          {/* <Autocomplete */}
-          {/*   options={states} */}
-          {/*   getOptionLabel={(option) => option.name} */}
-          {/*   value={selectedState} */}
-          {/*   onChange={(event, newValue) => { */}
-          {/*     setSelectedState(newValue); */}
-          {/*     setSelectedCity(null); // Reset city when state changes */}
-          {/*   }} */}
-          {/*   loading={loadingStates} */}
-          {/*   renderInput={(params) => ( */}
-          {/*     <TextField */}
-          {/*       {...params} */}
-          {/*       label="State" */}
-          {/*       required */}
-          {/*       fullWidth */}
-          {/*       InputProps={{ */}
-          {/*         ...params.InputProps, */}
-          {/*         endAdornment: loadingStates ? ( */}
-          {/*           <CircularProgress size={20} /> */}
-          {/*         ) : null, */}
-          {/*       }} */}
-          {/*     /> */}
-          {/*   )} */}
-          {/*   sx={{ mb: 3 }} */}
-          {/* /> */}
-
-          {/* City Dropdown */}
-          {/* <Autocomplete */}
-          {/*   options={cities} */}
-          {/*   value={selectedCity} */}
-          {/*   onChange={(event, newValue) => setSelectedCity(newValue)} */}
-          {/*   disabled={!selectedState || loadingCities} */}
-          {/*   loading={loadingCities} */}
-          {/*   renderInput={(params) => ( */}
-          {/*     <TextField */}
-          {/*       {...params} */}
-          {/*       label="City" */}
-          {/*       required */}
-          {/*       fullWidth */}
-          {/*       InputProps={{ */}
-          {/*         ...params.InputProps, */}
-          {/*         endAdornment: loadingCities ? ( */}
-          {/*           <CircularProgress size={20} /> */}
-          {/*         ) : null, */}
-          {/*       }} */}
-          {/*     /> */}
-          {/*   )} */}
-          {/*   sx={{ mb: 3 }} */}
-          {/* /> */}
 
           <LocationPicker onLocationSelect={handleLocationSelect} />
 

@@ -33,6 +33,11 @@ const TopBar = ({
 }) => {
   const navigate = useNavigate();
 
+  const handleLogout = () => {
+    signOut(auth);
+    navigate("/login");
+  };
+
   const handleTagChange = (event) => {
     setSelectedTags(event.target.value);
   };
@@ -136,11 +141,7 @@ const TopBar = ({
           >
             <HomeIcon />
           </IconButton>
-          <IconButton
-            color="inherit"
-            onClick={() => signOut(auth)}
-            title="Logout"
-          >
+          <IconButton color="inherit" onClick={handleLogout} title="Logout">
             <LogoutIcon />
           </IconButton>
           <Avatar sx={{ bgcolor: "#1976d2" }}>
@@ -153,4 +154,3 @@ const TopBar = ({
 };
 
 export default TopBar;
-

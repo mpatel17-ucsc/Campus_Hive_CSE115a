@@ -38,20 +38,21 @@ const CommentsSection = ({ activityId }) => {
         ...doc.data(),
       }));
       setComments(commentsList);
-  
+
       // Extract unique emails from comments
-      const uniqueUsers = Array.from(new Set(commentsList.map((c) => c.userName || c.email)));
+      const uniqueUsers = Array.from(
+        new Set(commentsList.map((c) => c.userName || c.email)),
+      );
       setUsers(uniqueUsers);
     });
-  
+
     return () => unsubscribe();
   };
-  
+
   // Ensure `fetchComments` runs when the component loads
   useEffect(() => {
     fetchComments();
-  }, [activityId]);
-  
+  });
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -66,53 +67,52 @@ const CommentsSection = ({ activityId }) => {
         console.error("Error fetching users:", error);
       }
     };
-  
+
     fetchUsers();
   }, []);
 
   const handleInputChange = (e) => {
     const value = e.target.value;
     setCommentInput(value);
-  
+
     const lastWord = value.split(" ").pop();
-  
+
     if (lastWord.startsWith("@")) {
       const query = lastWord.slice(1).toLowerCase();
-  
+
       if (!query) {
-        setMentionResults(users.map(user => user.email).filter(Boolean)); // Ensure valid emails
+        setMentionResults(users.map((user) => user.email).filter(Boolean)); // Ensure valid emails
         setMentionMenuAnchor(e.currentTarget); // 🔥 Keep dropdown active
         return;
       }
-  
+
       // setMentionQuery(query);
       setMentionResults(
         users
-          .map(user => user.email)
-          .filter(email => email && email.toLowerCase().startsWith(query))
+          .map((user) => user.email)
+          .filter((email) => email && email.toLowerCase().startsWith(query)),
       );
-  
+
       setMentionMenuAnchor(e.currentTarget); // Keeps dropdown properly positioned
     } else {
       setMentionResults([]);
       setMentionMenuAnchor(null);
     }
   };
-  
+
   const handleMentionSelect = (username) => {
     // Replace @mention with actual username
     if (!username) return; // Prevent undefined selection
     const words = commentInput.split(" ");
-    words[words.length - 1] = `@${username} `;;
+    words[words.length - 1] = `@${username} `;
     setCommentInput(words.join(" "));
     setMentionResults([]);
     setMentionMenuAnchor(null);
   };
 
-
   const handleAddComment = async () => {
     if (!commentInput.trim()) return;
-  
+
     try {
       const commentsRef = collection(db, "activities", activityId, "comments");
       await addDoc(commentsRef, {
@@ -123,7 +123,6 @@ const CommentsSection = ({ activityId }) => {
       });
       window.location.reload(); // NOTE: THIS should be ideally replaced in the next sprint. When a user @ someone once, the page should not fully reload, and the user should be able to comment again using the @ feature.
 
-  
       // Reset input and close mention dropdown
       setCommentInput("");
       setMentionResults([]);
@@ -137,7 +136,6 @@ const CommentsSection = ({ activityId }) => {
       console.error("Error adding comment:", error);
     }
   };
-    
 
   return (
     <Box sx={{ mt: 2 }}>
@@ -152,7 +150,7 @@ const CommentsSection = ({ activityId }) => {
           maxHeight: 200, // Limits excessive growth
           overflowY: "auto",
           mb: 2,
-          pr: 1, 
+          pr: 1,
           border: "1px solid #ddd",
           borderRadius: "8px",
           p: 1,
@@ -188,21 +186,21 @@ const CommentsSection = ({ activityId }) => {
 
       {/* Input Field with Mention Suggestion */}
       <Box sx={{ display: "flex", gap: 1, position: "relative" }}>
-      <TextField
-        id="comment-input"
-        fullWidth
-        variant="outlined"
-        size="small"
-        placeholder="Write a comment..."
-        value={commentInput}
-        onChange={handleInputChange}
-        onKeyDown={(e) => {
-          if (e.key === "Enter") {
-            e.preventDefault();
-            handleAddComment();
-          }
-        }}
-      />
+        <TextField
+          id="comment-input"
+          fullWidth
+          variant="outlined"
+          size="small"
+          placeholder="Write a comment..."
+          value={commentInput}
+          onChange={handleInputChange}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              handleAddComment();
+            }
+          }}
+        />
         <Button variant="contained" onClick={handleAddComment}>
           Post
         </Button>
@@ -216,10 +214,7 @@ const CommentsSection = ({ activityId }) => {
         autoFocus={false} // Prevents accidental close on first selection
       >
         {mentionResults.map((user) => (
-          <MenuItem 
-            key={user} 
-            onClick={() => handleMentionSelect(user)}
-          >
+          <MenuItem key={user} onClick={() => handleMentionSelect(user)}>
             {user}
           </MenuItem>
         ))}
@@ -229,4 +224,3 @@ const CommentsSection = ({ activityId }) => {
 };
 
 export default CommentsSection;
-
