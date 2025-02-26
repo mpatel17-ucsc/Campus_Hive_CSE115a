@@ -49,10 +49,6 @@ const ActivityCard = ({ activity }) => {
   const [upvotes, setUpvotes] = useState(activity.upvotes || 0);
   const [downvotes, setDownvotes] = useState(activity.downvotes || 0);
 
-  const test = () => {
-    console.log("hasUpvoted", hasUpvoted);
-  };
-
   const googleMapsApiKey = process.env.REACT_APP_maps
   // Create a static map URL based on the location.
   const staticMapUrl = `https://maps.googleapis.com/maps/api/staticmap?center=${encodeURIComponent(
