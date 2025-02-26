@@ -5,7 +5,8 @@ import {
   Marker,
   Autocomplete,
 } from "@react-google-maps/api";
-
+// load API key
+// declare constants
 const GOOGLE_MAPS_API_KEY = process.env.REACT_APP_maps;
 
 const mapContainerStyle = {
@@ -16,10 +17,11 @@ const mapContainerStyle = {
 const defaultCenter = { lat: 37.7749, lng: -122.4194 }; // Default to San Francisco
 
 const LocationPicker = ({ onLocationSelect }) => {
+  // State variables defined here
   const [map, setMap] = useState(null);
   const [markerPosition, setMarkerPosition] = useState(defaultCenter);
   const autocompleteRef = useRef(null);
-
+  // Set map when loaded
   const onLoad = (mapInstance) => {
     setMap(mapInstance);
   };
@@ -30,6 +32,7 @@ const LocationPicker = ({ onLocationSelect }) => {
     }
   }, [map]);
 
+  // When place has changed
   const onPlaceChanged = () => {
     if (autocompleteRef.current) {
       const place = autocompleteRef.current.getPlace();

@@ -8,20 +8,26 @@ import { useLocation } from "react-router-dom";
 import { Container, CircularProgress, Box, Alert, Grid } from "@mui/material";
 
 const Home = () => {
+  // State variables
   const [activities, setActivities] = useState([]);
   const [filteredActivities, setFilteredActivities] = useState([]);
   const [loading, setLoading] = useState(true);
   const [fadeOut, setFadeOut] = useState(false);
   const location = useLocation();
 
+  // Retrieve Success message of navigation state
   const successMessage = location.state?.message || "";
+
+  // State variables for search and tag filters
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedTags, setSelectedTags] = useState([]);
   const userID = auth.currentUser.uid;
 
+  // Function to fetch activities from Firestore
   const fetchActivities = async () => {
     setLoading(true);
     try {
+      // Fetch all activity documents
       const querySnapshot = await getDocs(collection(db, "activities"));
       const activitiesList = querySnapshot.docs.map((doc) => ({
         id: doc.id,
@@ -35,7 +41,7 @@ const Home = () => {
     }
     setLoading(false);
   };
-
+  // Function to extract unique tags from all activities
   const getUniqueTags = () => {
     const tags = new Set();
     activities.forEach((activity) => {
@@ -43,7 +49,7 @@ const Home = () => {
     });
     return Array.from(tags);
   };
-
+  // Fetch activities when component mounts and handle success message timeout
   useEffect(() => {
     fetchActivities();
     if (successMessage) {
@@ -52,7 +58,7 @@ const Home = () => {
       return () => clearTimeout(timer);
     }
   }, [successMessage]);
-
+  // Filter activities whenever search term, selected tags, or activities change
   useEffect(() => {
     let filtered = activities;
 
@@ -66,13 +72,13 @@ const Home = () => {
           (activity.description &&
             activity.description
               .toLowerCase()
-              .includes(searchTerm.toLowerCase())),
+              .includes(searchTerm.toLowerCase()))
       );
     }
-
+    // Filter only based on selected tags
     if (selectedTags.length > 0) {
       filtered = filtered.filter((activity) =>
-        selectedTags.every((tag) => activity.tags?.includes(tag)),
+        selectedTags.every((tag) => activity.tags?.includes(tag))
       );
     }
 
@@ -89,7 +95,7 @@ const Home = () => {
         }
         return [matches, nonMatches];
       },
-      [[], []],
+      [[], []]
     );
   }, [filteredActivities, userID]);
 

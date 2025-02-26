@@ -16,7 +16,7 @@ const theme = createTheme(); // Create a default Material-UI theme
 const App = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(null);
   const [loading, setLoading] = useState(true);
-
+  // UseEffect hook to listen on changes to Firebase Authentication 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setIsLoggedIn(!!user);

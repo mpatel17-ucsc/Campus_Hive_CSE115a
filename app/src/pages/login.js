@@ -19,6 +19,7 @@ import { doc, setDoc } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
 
 const Login = ({ onLoginSuccess }) => {
+  // State variables defined here
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -27,6 +28,7 @@ const Login = ({ onLoginSuccess }) => {
   const [isResetLoading, setIsResetLoading] = useState(false); // Separate loading state for password reset
   const navigate = useNavigate();
 
+  // Function to handle email/password submissions/login
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
@@ -35,7 +37,7 @@ const Login = ({ onLoginSuccess }) => {
       const userCredential = await signInWithEmailAndPassword(
         auth,
         email,
-        password,
+        password
       );
       const user = userCredential.user;
       await setDoc(doc(db, "users", user.uid), {
@@ -45,17 +47,20 @@ const Login = ({ onLoginSuccess }) => {
       onLoginSuccess();
       navigate("/home");
     } catch (err) {
+      // error handling on failure
       setError(err.message);
     } finally {
       setIsLoading(false);
     }
   };
 
+  // Google authentication function
   const handleGoogleSignIn = async () => {
     setError("");
     setIsLoading(true);
     const provider = new GoogleAuthProvider();
     try {
+      // create sign-in popup and interface with Firebase backend
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
       await setDoc(doc(db, "users", user.uid), {
@@ -65,17 +70,19 @@ const Login = ({ onLoginSuccess }) => {
       onLoginSuccess();
       navigate("/home");
     } catch (err) {
-      setError(err.message);
+      setError(err.message); // error handling with try, catch, finally
     } finally {
       setIsLoading(false);
     }
   };
 
+  // Function to handle the reset password
   const handleReset = async () => {
     if (!email) {
       setError("Please enter an email address");
       return;
     }
+    // (long) regex for email validation
     const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
     if (!emailPattern.test(email)) {
       setError("Please enter a valid email address");
@@ -85,8 +92,9 @@ const Login = ({ onLoginSuccess }) => {
     sendPasswordResetEmail(auth, email)
       .then(() => {
         setError("");
+        // Success message display
         setMessage(
-          "If an account with this email exists, a password reset email has been sent.",
+          "If an account with this email exists, a password reset email has been sent."
         );
       })
       .catch((error) => {

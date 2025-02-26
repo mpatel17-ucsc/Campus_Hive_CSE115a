@@ -6,6 +6,7 @@ import { BrowserRouter } from "react-router-dom";
 // import reportWebVitals from "./util/reportWebVitals";
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
+//dont use strict mode
 
 root.render(
   <BrowserRouter>
