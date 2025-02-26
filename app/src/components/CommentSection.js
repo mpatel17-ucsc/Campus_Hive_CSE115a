@@ -7,6 +7,8 @@ import {
   List,
   ListItem,
   ListItemText,
+  Menu,
+  MenuItem,
 } from "@mui/material";
 import { db, auth } from "../Firebase";
 import {
@@ -62,13 +64,15 @@ const CommentsSection = ({ activityId }) => {
       {/* Scrollable comments container */}
       <Box
         sx={{
-          maxHeight: 200, // Adjust this value as needed
+          minHeight: 150, // Ensures the box doesn't shrink too much
+          maxHeight: 200, // Limits excessive growth
           overflowY: "auto",
           mb: 2,
-          pr: 1, // optional: provides some right padding for scrollbar space
-          border: "1px solid #eee",
-          borderRadius: "4px",
+          pr: 1, 
+          border: "1px solid #ddd",
+          borderRadius: "8px",
           p: 1,
+          backgroundColor: "#fafafa", // Light background for better contrast
         }}
       >
         <List>
