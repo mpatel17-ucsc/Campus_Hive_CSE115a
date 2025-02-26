@@ -16,6 +16,8 @@ import { KeyboardArrowLeft, KeyboardArrowRight } from "@mui/icons-material";
 import { useState } from "react";
 import { ThumbUp, ThumbDown } from "@mui/icons-material";
 import { db, auth } from "../Firebase";
+import { IconButton } from "@mui/material";
+import { Room } from "@mui/icons-material";
 // import { debounce } from "lodash";
 
 import CommentsSection from "./CommentSection";
@@ -61,7 +63,9 @@ const ActivityCard = ({ activity }) => {
     activity.city + ", " + activity.state
   )}&key=${googleMapsApiKey}`;
 
-
+  const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+    activity.city + ", " + activity.state
+  )}`;
 
   // If user images exist, append them after the static map image.
   const additionalImages = activity.imageUrls || [];
@@ -214,9 +218,18 @@ const ActivityCard = ({ activity }) => {
           <Typography variant="h6" fontWeight="bold">
             {activity.locationName}
           </Typography>
-          <Typography variant="body2" color="textSecondary">
-            {activity.city}, {activity.state}
-          </Typography>
+          <Box sx={{ display: "flex", alignItems: "center" }}>
+            <Typography variant="body2" color="textSecondary">
+              {activity.city}, {activity.state}
+            </Typography>
+            <IconButton
+              color="primary"
+              onClick={() => window.open(googleMapsUrl, "_blank")}
+              sx={{ ml: 0.5 }} // Adds a small gap between text and icon
+            >
+              <Room fontSize="small" /> {/* Replace with any icon */}
+            </IconButton>
+          </Box>
           <Typography variant="body1" sx={{ mt: 1 }}>
             {activity.description}
           </Typography>
