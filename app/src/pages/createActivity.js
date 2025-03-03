@@ -33,10 +33,6 @@ const CreateActivity = () => {
   const [description, setDescription] = useState("");
   const [tags, setTags] = useState([]);
   const [tagInput, setTagInput] = useState("");
-
-  // const [selectedState, setSelectedState] = useState(null);
-  // const [selectedCity, setSelectedCity] = useState(null);
-  // const [coords, setCoords] = useState(null);
   const [location, setLocation] = useState({});
 
   const [imageFiles, setImageFiles] = useState([]);
@@ -177,32 +173,8 @@ const CreateActivity = () => {
         downloadURLs.push(url);
       }
 
-      //     if (imageFiles.length > 0) {
-      //       console.log(imageFiles);
-      //       for (const file of imageFiles) {
-      //         const name = `${Date.now()}-${file.name}`;
-      //         const storageRef = ref(storage, `images/${userID}/${name}`);
-      //         await uploadBytes(storageRef, file);
-      //         const url = await getDownloadURL(storageRef);
-      //         downloadURLs.push(url);
-      //       }
-      //     } else {
-      //       const coords = `${location.lat},${location.lng}`;
-      //       const staticMapUrl = `https://maps.googleapis.com/maps/api/staticmap?center=${coords}&zoom=12&size=600x300&maptype=roadmap
-      // &markers=color:red%7Clabel:S%7C${coords}
-      // &key=${process.env.REACT_APP_maps}`;
-      //
-      //       const name = `${Date.now()}-${coords}.png`;
-      //       const storageRef = ref(storage, `images/${userID}/${name}`);
-      //       await uploadBytes(storageRef, file);
-      //       const url = await getDownloadURL(storageRef);
-      //       downloadURLs.push(url);
-      //     }
-
       await setDoc(doc(db, "activities", new Date().toISOString()), {
         placeName,
-        // state: loaction.state,
-        // city: location.city,
         location,
         description,
         rating,

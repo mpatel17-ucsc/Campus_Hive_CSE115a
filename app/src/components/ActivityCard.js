@@ -41,21 +41,11 @@ import {
   arrayRemove,
 } from "firebase/firestore";
 
-const googleMapsApiKey = process.env.REACT_APP_maps;
-
 const ActivityCard = ({ activity, owner = false, onDelete }) => {
   const user = auth.currentUser; // Get logged-in user
   const activityRef = doc(db, "activities", activity.id);
 
   const [activeStep, setActiveStep] = useState(0);
-
-  // Create a static map URL based on the location.
-  // const staticMapUrl = `https://maps.googleapis.com/maps/api/staticmap?center=${encodeURIComponent(
-  //   activity.city + ", " + activity.state,
-  // )}&zoom=13&size=600x300&maptype=roadmap&markers=color:red%7C${encodeURIComponent(
-  //   activity.city + ", " + activity.state,
-  // )}&key=${googleMapsApiKey}`;
-
   let mapsUrl = "";
 
   if (activity.location && activity.location.lat && activity.location.lng) {
@@ -86,15 +76,7 @@ const ActivityCard = ({ activity, owner = false, onDelete }) => {
     }
   };
 
-  // If user images exist, append them after the static map image.
-  const init = activity.imageUrls || [];
-  let imagesToDisplay = init;
-
-  // if (init.length == 0) {
-  //   imagesToDisplay = [staticMapUrl, ...init];
-  // }
-  // const imagesToDisplay = [staticMapUrl, ...init];
-  // const imagesToDisplay = additionalImages;
+  const imagesToDisplay = activity.imageUrls || [];
   const totalImages = imagesToDisplay.length;
 
   const handleVote = async (type) => {

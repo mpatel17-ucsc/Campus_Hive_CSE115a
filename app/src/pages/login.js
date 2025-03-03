@@ -25,6 +25,7 @@ const Login = ({ onLoginSuccess }) => {
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  //eslint-disable-next-line
   const [isResetLoading, setIsResetLoading] = useState(false); // Separate loading state for password reset
   const navigate = useNavigate();
 
@@ -37,7 +38,7 @@ const Login = ({ onLoginSuccess }) => {
       const userCredential = await signInWithEmailAndPassword(
         auth,
         email,
-        password
+        password,
       );
       const user = userCredential.user;
       await setDoc(doc(db, "users", user.uid), {
@@ -94,7 +95,7 @@ const Login = ({ onLoginSuccess }) => {
         setError("");
         // Success message display
         setMessage(
-          "If an account with this email exists, a password reset email has been sent."
+          "If an account with this email exists, a password reset email has been sent.",
         );
       })
       .catch((error) => {
