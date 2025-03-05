@@ -7,6 +7,7 @@ import { ref, uploadBytes, getDownloadURL, listAll } from "firebase/storage";
 
 import { db, storage, auth } from "../util/firebase";
 import LocationPicker from "../components/LocationPicker";
+import UniversitySelector from "../components/UniversitySelector";
 
 import {
   Container,
@@ -34,6 +35,7 @@ const CreateActivity = () => {
   const [tags, setTags] = useState([]);
   const [tagInput, setTagInput] = useState("");
   const [location, setLocation] = useState({});
+  const [selectedUniversity, setSelectedUniversity] = useState("")
 
   const [imageFiles, setImageFiles] = useState([]);
   const [imagePreviews, setImagePreviews] = useState([]);
@@ -46,6 +48,11 @@ const CreateActivity = () => {
     // setSelectedCity(city);
     // setSelectedState(state);
     // setCoords(coords);
+  };
+
+  const handleUniversitySelect = (university) => {
+    console.log("Selected University:", university)
+    setSelectedUniversity(university);
   };
 
   const handleAddTag = () => {
@@ -179,6 +186,7 @@ const CreateActivity = () => {
         description,
         rating,
         tags,
+        selectedUniversity,
         createdAt: serverTimestamp(),
         userID: user.uid,
         userName: user.displayName,
@@ -225,6 +233,10 @@ const CreateActivity = () => {
           />
 
           <LocationPicker onLocationSelect={handleLocationSelect} />
+
+
+          {/* University Selector */}
+          <UniversitySelector onSelectUniversity={handleUniversitySelect} />
 
           {/* Description Input */}
           <TextField
