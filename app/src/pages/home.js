@@ -3,10 +3,12 @@ import TopBar from "../components/TopBar";
 import ActivityCard from "../components/ActivityCard";
 import HomeMap from "../components/HomeMap";
 
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo} from "react";
 import { collection, getDocs, deleteDoc, doc } from "firebase/firestore";
 import { useLocation } from "react-router-dom";
-import { Container, CircularProgress, Box, Alert, Grid } from "@mui/material";
+import { Container, CircularProgress, Box, Alert, Grid} from "@mui/material";
+import UniversityHome from "../components/UniversityHome";
+
 
 const Home = () => {
   // State variables
@@ -24,6 +26,9 @@ const Home = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedTags, setSelectedTags] = useState([]);
   const userID = auth.currentUser.uid;
+
+  // State for university selection
+  const [selectedUniversity, setSelectedUniversity] = useState("");
 
   // Function to fetch activities from Firestore
   const fetchActivities = async () => {
@@ -43,6 +48,7 @@ const Home = () => {
     }
     setLoading(false);
   };
+
   // Function to extract unique tags from all activities
   const getUniqueTags = () => {
     const tags = new Set();
@@ -60,6 +66,7 @@ const Home = () => {
       return () => clearTimeout(timer);
     }
   }, [successMessage]);
+
   // Filter activities whenever search term, selected tags, or activities change
   useEffect(() => {
     let filtered = activities;
@@ -76,6 +83,11 @@ const Home = () => {
     filtered = filtered.filter((activity) => selectedTags.every((tag) => activity.tags?.includes(tag)));
   }
 
+  // Filter by selected university
+  if (selectedUniversity) {
+    filtered = filtered.filter((activity) => activity.selectedUniversity === selectedUniversity);
+  }
+
   // Sorting logic
   if (sortBy === "highestRated") {
     filtered = [...filtered].sort((a, b) => (b.rating || 0) - (a.rating || 0));
@@ -84,7 +96,7 @@ const Home = () => {
   }
 
   setFilteredActivities(filtered);
-}, [searchTerm, selectedTags, activities, sortBy]);
+}, [searchTerm, selectedTags, activities, sortBy, selectedUniversity]);
 
   const [myActs, others] = useMemo(() => {
     return filteredActivities.reduce(
@@ -115,6 +127,11 @@ const Home = () => {
     }
   };
 
+  const handleUniversitySelect = (university) => {
+    console.log("Selected University:", university)
+    setSelectedUniversity(university);
+  };
+
   return (
     <Box
       sx={{
@@ -132,6 +149,11 @@ const Home = () => {
       sortBy={sortBy} // Pass sortBy state
       setSortBy={setSortBy} // Pass sorting function
       />
+
+      {/* University Dropdown from UniversityHome component */}
+      <Box sx={{ padding: "20px", backgroundColor: "#fff", borderRadius: "8px", mb: 4 }}>
+        <UniversityHome onSelectUniversity={handleUniversitySelect} />
+      </Box>
       {loading ? (
         <Box
           sx={{

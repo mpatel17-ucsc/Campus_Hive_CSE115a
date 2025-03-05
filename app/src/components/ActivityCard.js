@@ -344,6 +344,13 @@ const ActivityCard = ({ activity, owner = false, onDelete }) => {
             </IconButton>
           </Box>
 
+          {/* Displaying the College Name */}
+          {activity.selectedUniversity && (
+            <Typography variant="body2" color="textSecondary">
+              <strong>College: </strong>{activity.selectedUniversity}
+            </Typography>
+          )}
+
           {/* Display activity description and user-submitted rating out of 5 */}
           <Typography variant="body1" sx={{ mt: 1 }}>
             {activity.description}
