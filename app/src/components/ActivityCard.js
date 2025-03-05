@@ -42,106 +42,138 @@ import {
 } from "firebase/firestore";
 
 const ActivityCard = ({ activity, owner = false, onDelete }) => {
-  const user = auth.currentUser; // Get logged-in user
+  // Get the currently logged-in user from Firebase Auth
+  const user = auth.currentUser; 
+  // reference to the Firestore document for this specific activity
   const activityRef = doc(db, "activities", activity.id);
-
+  // State to keep track of the active image step in the SwipeableViews
   const [activeStep, setActiveStep] = useState(0);
   let mapsUrl = "";
-
+  // If the activity selected has a valid lat and long, generate a Google Maps link
   if (activity.location && activity.location.lat && activity.location.lng) {
     const coords = `${activity.location.lat},${activity.location.lng}`;
     mapsUrl = `https://www.google.com/maps?q=${coords}`;
   }
 
+  // state to check if the user has upvoted the activity before
   const [hasUpvoted, setHasUpvoted] = useState(
+    // check if userID is in the upvotedBy array to avoid duplication
     activity.upvotedBy?.includes(user.uid),
   );
+
+  // state to check if the user has downvoted the activity before
   const [hasDownvoted, setHasDownvoted] = useState(
+    // check if userID is in the downvotedBy array to avoid duplication
     activity.downvotedBy?.includes(user.uid),
   );
 
-  // const debouncedUpdate = debounce(async (updateData) => {
-  //   await updateDoc(activityRef, updateData);
-  // }, 500);
-
+  // state to manage whether the delete confirmation dialog is open
   const [openDialog, setOpenDialog] = useState(false);
-
+  
+  // state to store the current number of upvotes for an activity
   const [upvotes, setUpvotes] = useState(activity.upvotes || 0);
+
+  // state to store the current number of downvotes for an activity
   const [downvotes, setDownvotes] = useState(activity.downvotes || 0);
 
+  // Handle the deletion of an activity
   const handleDelete = () => {
+    // close the confirmation dialog before proceeding with deletion
     setOpenDialog(false);
+    // check if the onDelete function was passed, and if so, call the function to perform the deletion
     if (onDelete) {
       onDelete();
     }
   };
 
-  const imagesToDisplay = activity.imageUrls || [];
+  // If user images exist, append them after the static map image.
+  const init = activity.imageUrls || [];
+  let imagesToDisplay = init;
+  // keep track of the total images
   const totalImages = imagesToDisplay.length;
 
+  // function to handle voting (upvotes & downvotes)
   const handleVote = async (type) => {
     try {
+      // retrieve Firestore document. If it exists, proceed with vote updates
       const activitySnap = await getDoc(activityRef);
-
       if (activitySnap.exists()) {
+        // get the user unique ID
         const userId = user.uid;
-
+        // object to store updates for Firestore
         let updateData = {};
+
+        // Handle case of UPVOTE
         if (type === "upvotes") {
           if (hasUpvoted) {
             // If already upvoted, remove the upvote
             updateData = {
+              // decrease upvote count
               upvotes: increment(-1),
+              // remove the user from the upvote list
               upvotedBy: arrayRemove(userId),
             };
+            // update local state to reflect removal
             setHasUpvoted(false);
+            // decrease the upvote count in UI
             setUpvotes((prev) => prev - 1);
           } else {
             // If downvoted before, remove downvote and add upvote
             updateData = {
+              // increase the upvote count in Firestore
               upvotes: increment(1),
+              // add user ID to upvoted list
               upvotedBy: arrayUnion(userId),
               ...(hasDownvoted && {
+                // decrease downvote count
                 downvotes: increment(-1),
+                // remove user from downvoted array
                 downvotedBy: arrayRemove(userId),
               }),
             };
+
             if (hasDownvoted) {
+              // update downvote count in UI
               setDownvotes((prev) => prev - 1);
+              // set hasDownvoted to false
               setHasDownvoted(false);
             }
+            // mark user as upvoted
             setHasUpvoted(true);
+            // increase upvote count in the UI
             setUpvotes((prev) => prev + 1);
           }
-        } else if (type === "downvotes") {
+        } 
+        
+        // handle the case when the user is DOWNVOTING
+        else if (type === "downvotes") {
           if (hasDownvoted) {
             // If already downvoted, remove the downvote
             updateData = {
-              downvotes: increment(-1),
-              downvotedBy: arrayRemove(userId),
+              downvotes: increment(-1), // Decrease downvote count in Firestore
+              downvotedBy: arrayRemove(userId), // Remove user ID from downvoted list
             };
-            setHasDownvoted(false);
-            setDownvotes((prev) => prev - 1);
+            setHasDownvoted(false); // Update local state
+            setDownvotes((prev) => prev - 1); // Decrease downvote count in UI
           } else {
-            // If upvoted before, remove upvote and add downvote
+            // If the user had previously upvoted, remove that upvote first
             updateData = {
-              downvotes: increment(1),
-              downvotedBy: arrayUnion(userId),
+              downvotes: increment(1), // Increase downvote count in Firestore
+              downvotedBy: arrayUnion(userId), // Add user ID to downvoted list
               ...(hasUpvoted && {
-                upvotes: increment(-1),
-                upvotedBy: arrayRemove(userId),
+                upvotes: increment(-1), // Decrease upvote count
+                upvotedBy: arrayRemove(userId), // Remove user from upvoted list
               }),
             };
             if (hasUpvoted) {
-              setUpvotes((prev) => prev - 1);
-              setHasUpvoted(false);
+              setUpvotes((prev) => prev - 1); // Update upvote count in UI
+              setHasUpvoted(false); // Set hasUpvoted to false
             }
-            setHasDownvoted(true);
-            setDownvotes((prev) => prev + 1);
+            setHasDownvoted(true); // Mark user as downvoted
+            setDownvotes((prev) => prev + 1); // Increase downvote count in UI
           }
         }
-
-        // debouncedUpdate(updateData);
+        // Update Firestore with the new upvote/downvote values
         await updateDoc(activityRef, updateData);
       }
     } catch (error) {
@@ -149,36 +181,34 @@ const ActivityCard = ({ activity, owner = false, onDelete }) => {
     }
   };
 
+
+  // Handle moving on to the next image
   const handleNext = () => {
+    // ensure that we don't go beyond the last image
     if (activeStep < totalImages - 1) {
+      // move to the next image
       setActiveStep((prevStep) => prevStep + 1);
     }
   };
-
+  // Handle moving to the previous image
   const handleBack = () => {
+    // ensure we don't go below the first image
     if (activeStep > 0) {
+      // move to the previous image
       setActiveStep((prevStep) => prevStep - 1);
     }
   };
 
   return (
+    // Grid Layout and Card Container
     <Grid item xs={12} sm={6} md={4} lg={3} key={activity.id}>
       <Card sx={{ borderRadius: "12px", boxShadow: 3 }}>
+
         {/* Remove Button (Only if Owner) */}
         {owner && (
           <>
-            <IconButton
-              sx={
-                {
-                  // position: "absolute",
-                  // top: 5,
-                  // right: 5,
-                  // background: "rgba(255, 255, 255, 0.7)",
-                  // "&:hover": { background: "rgba(255, 255, 255, 1)" },
-                }
-              }
-              onClick={() => setOpenDialog(true)}
-            >
+            {/* Open a confirmation dialog and be able to delete an activity */}
+            <IconButton onClick={() => setOpenDialog(true)}>
               <Close />
             </IconButton>
 
@@ -202,8 +232,11 @@ const ActivityCard = ({ activity, owner = false, onDelete }) => {
             </Dialog>
           </>
         )}
+
+        {/* Image Navigation UI */}
         {totalImages > 0 && (
           <Box sx={{ position: "relative" }}>
+            {/* Swipeable Image Carousel */}
             <SwipeableViews index={activeStep} onChangeIndex={setActiveStep}>
               {imagesToDisplay.map((image, index) => (
                 <CardMedia
@@ -212,9 +245,40 @@ const ActivityCard = ({ activity, owner = false, onDelete }) => {
                   height="200"
                   image={image}
                   alt={index === 0 ? "Location Map" : `Activity Image ${index}`}
+                  sx={{ objectFit: "cover" }} // Ensures the image is well-proportioned
                 />
               ))}
             </SwipeableViews>
+
+            {/* Navigation Dots Overlay (Instagram-style) */}
+            {totalImages > 1 && (
+              <Box
+                sx={{
+                  position: "absolute",
+                  bottom: 10, // Adjusts position inside the image
+                  left: "50%",
+                  transform: "translateX(-50%)",
+                  display: "flex",
+                  gap: "5px",
+                  backgroundColor: "rgba(0, 0, 0, 0.2)", // Transparent background for better visibility
+                  padding: "5px 10px",
+                  borderRadius: "15px", // Smooth rounded effect
+                }}
+              >
+                {imagesToDisplay.map((_, index) => (
+                  <Box
+                    key={index}
+                    sx={{
+                      width: activeStep === index ? "10px" : "8px", // Slightly bigger for active dot
+                      height: activeStep === index ? "10px" : "8px",
+                      backgroundColor: activeStep === index ? "#fff" : "rgba(255, 255, 255, 0.5)",
+                      borderRadius: "50%",
+                      transition: "all 0.3s ease",
+                    }}
+                  />
+                ))}
+              </Box>
+            )}
 
             {/* Left & Right Navigation Buttons */}
             {totalImages > 1 && (
@@ -257,10 +321,16 @@ const ActivityCard = ({ activity, owner = false, onDelete }) => {
             )}
           </Box>
         )}
+
+        {/* Activity Information */}
+
+        {/* Display the name of the activity location */}
         <CardContent>
           <Typography variant="h6" fontWeight="bold">
             {activity.locationName}
           </Typography>
+
+          {/* Display the Location including the Google Maps link button (City, State) */}
           <Box sx={{ display: "flex", alignItems: "center" }}>
             <Typography variant="body2" color="textSecondary">
               {activity.location?.city}, {activity.location?.state}
@@ -273,12 +343,16 @@ const ActivityCard = ({ activity, owner = false, onDelete }) => {
               <Room fontSize="small" />
             </IconButton>
           </Box>
+
+          {/* Display activity description and user-submitted rating out of 5 */}
           <Typography variant="body1" sx={{ mt: 1 }}>
             {activity.description}
           </Typography>
           <Typography variant="subtitle2" color="primary" sx={{ mt: 1 }}>
             ⭐ {activity.rating} / 5
           </Typography>
+
+          {/* Convert Firebase timstamp to readable data for the user */}
           <Typography variant="caption" color="textSecondary">
             {new Date(activity.createdAt?.seconds * 1000).toLocaleDateString()}
           </Typography>
@@ -292,35 +366,24 @@ const ActivityCard = ({ activity, owner = false, onDelete }) => {
             </Box>
           )}
 
-          {totalImages > 1 && (
-            <MobileStepper
-              steps={totalImages}
-              position="static"
-              activeStep={activeStep}
-              nextButton={null}
-              backButton={null}
-              sx={{ backgroundColor: "transparent", justifyContent: "center" }}
-            />
-          )}
-
           {/* Upvote / Downvote Buttons */}
           <Box sx={{ display: "flex", justifyContent: "space-between", mt: 2 }}>
             <Button
               startIcon={<ThumbUp />}
               onClick={() => handleVote("upvotes")}
-              sx={{ color: hasUpvoted ? "green" : "default" }} // ✅ Uses default color
+              sx={{ color: hasUpvoted ? "green" : "default" }}
             >
               {upvotes}
             </Button>
             <Button
               startIcon={<ThumbDown />}
               onClick={() => handleVote("downvotes")}
-              sx={{ color: hasDownvoted ? "red" : "default" }} // ✅ Uses default color
+              sx={{ color: hasDownvoted ? "red" : "default" }} 
             >
               {downvotes}
             </Button>
           </Box>
-
+          {/* Display the comment section */}
           <CommentsSection activityId={activity.id} />
         </CardContent>
       </Card>
@@ -329,7 +392,3 @@ const ActivityCard = ({ activity, owner = false, onDelete }) => {
 };
 
 export default ActivityCard;
-
-// const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-//   activity.city + ", " + activity.state,
-// )}`;
