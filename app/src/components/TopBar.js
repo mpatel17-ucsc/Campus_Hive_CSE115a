@@ -18,6 +18,7 @@ import {
   ListItemIcon,
   ListItemText,
   Switch,
+  Divider,
 } from "@mui/material";
 import {
   Search as SearchIcon,
@@ -26,6 +27,7 @@ import {
   Logout as LogoutIcon,
   NotificationsOff as NotificationsOffIcon,
   NotificationsActive as NotificationsActiveIcon,
+  Settings as SettingsIcon,
 } from "@mui/icons-material";
 
 import { doc, updateDoc } from "firebase/firestore";
@@ -33,7 +35,8 @@ import { doc, updateDoc } from "firebase/firestore";
 import { signOut } from "firebase/auth";
 import { auth, db } from "../util/firebase";
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { onAuthStateChanged } from "firebase/auth"
 
 const TopBar = ({
   searchTerm,
@@ -79,6 +82,14 @@ const TopBar = ({
       allowNotifications: !notificationsEnabled,
     });
   };
+
+  const [user, setUser] = useState(auth.currentUser);
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+    });
+    return unsubscribe;
+  }, []);
 
   return (
     <>
@@ -185,10 +196,12 @@ const TopBar = ({
               <LogoutIcon />
             </IconButton>
             <Avatar
+              src={user?.photoURL || null} 
               sx={{ bgcolor: "#1976d2", cursor: "pointer" }}
               onClick={toggleSidebar(true)}
             >
-              {auth.currentUser?.email?.charAt(0).toUpperCase()}
+              {/* Fallback: if there is no photoURL, display first letter of the user's email */}
+              {!user?.photoURL && auth.currentUser?.email?.charAt(0).toUpperCase()}
             </Avatar>
           </Box>
         </Toolbar>
@@ -210,6 +223,16 @@ const TopBar = ({
               onChange={handleToggleNotifications}
               inputProps={{ "aria-label": "toggle notifications" }}
             />
+          </ListItem>
+
+          <Divider />
+
+          {/* Settings Button */}
+          <ListItem button onClick={() => navigate("/settings")}>
+            <ListItemIcon>
+              <SettingsIcon />
+            </ListItemIcon>
+            <ListItemText primary="Settings" />
           </ListItem>
         </List>
       </Drawer>
