@@ -41,12 +41,18 @@ const TopBar = ({
   tags,
   selectedTags,
   setSelectedTags,
+  sortBy,
+  setSortBy, // New props for sorting
+
 }) => {
   const navigate = useNavigate();
 
   const handleLogout = () => {
     signOut(auth);
     navigate("/login");
+  };
+  const handleSortChange = (event) => {
+    setSortBy(event.target.value);
   };
 
   const handleTagChange = (event) => {
@@ -152,7 +158,14 @@ const TopBar = ({
               ))}
             </Select>
           </FormControl>
-
+          <FormControl sx={{ minWidth: 200, height: 40 }}>
+            <InputLabel sx={{ fontSize: "0.85rem", top: -6 }}>Sort By</InputLabel>
+            <Select value={sortBy} onChange={handleSortChange} sx={{ height: 40, display: "flex", alignItems: "center" }}>
+              <MenuItem value="">None</MenuItem>
+              <MenuItem value="highestRated">Highest Rated</MenuItem>
+              <MenuItem value="mostPopular">Most Popular</MenuItem>
+            </Select>
+          </FormControl>
           <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
             <IconButton
               color="inherit"
@@ -203,5 +216,6 @@ const TopBar = ({
     </>
   );
 };
-
 export default TopBar;
+
+
