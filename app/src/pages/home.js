@@ -15,6 +15,7 @@ const Home = () => {
   const [loading, setLoading] = useState(true);
   const [fadeOut, setFadeOut] = useState(false);
   const location = useLocation();
+  const [sortBy, setSortBy] = useState("");
 
   // Retrieve Success message of navigation state
   const successMessage = location.state?.message || "";
@@ -63,28 +64,27 @@ const Home = () => {
   useEffect(() => {
     let filtered = activities;
 
-    if (searchTerm) {
-      filtered = filtered.filter(
-        (activity) =>
-          (activity.locationName &&
-            activity.locationName
-              .toLowerCase()
-              .includes(searchTerm.toLowerCase())) ||
-          (activity.description &&
-            activity.description
-              .toLowerCase()
-              .includes(searchTerm.toLowerCase())),
-      );
-    }
-    // Filter only based on selected tags
-    if (selectedTags.length > 0) {
-      filtered = filtered.filter((activity) =>
-        selectedTags.every((tag) => activity.tags?.includes(tag)),
-      );
-    }
+  if (searchTerm) {
+    filtered = filtered.filter(
+      (activity) =>
+        (activity.locationName && activity.locationName.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (activity.description && activity.description.toLowerCase().includes(searchTerm.toLowerCase()))
+    );
+  }
 
-    setFilteredActivities(filtered);
-  }, [searchTerm, selectedTags, activities]);
+  if (selectedTags.length > 0) {
+    filtered = filtered.filter((activity) => selectedTags.every((tag) => activity.tags?.includes(tag)));
+  }
+
+  // Sorting logic
+  if (sortBy === "highestRated") {
+    filtered = [...filtered].sort((a, b) => (b.rating || 0) - (a.rating || 0));
+  } else if (sortBy === "mostPopular") {
+    filtered = [...filtered].sort((a, b) => (b.upvotes || 0) - (a.upvotes || 0));
+  }
+
+  setFilteredActivities(filtered);
+}, [searchTerm, selectedTags, activities, sortBy]);
 
   const [myActs, others] = useMemo(() => {
     return filteredActivities.reduce(
@@ -124,11 +124,13 @@ const Home = () => {
       }}
     >
       <TopBar
-        searchTerm={searchTerm}
-        setSearchTerm={setSearchTerm}
-        tags={getUniqueTags()}
-        selectedTags={selectedTags}
-        setSelectedTags={setSelectedTags}
+      searchTerm={searchTerm}
+      setSearchTerm={setSearchTerm}
+      tags={getUniqueTags()}
+      selectedTags={selectedTags}
+      setSelectedTags={setSelectedTags}
+      sortBy={sortBy} // Pass sortBy state
+      setSortBy={setSortBy} // Pass sorting function
       />
       {loading ? (
         <Box
