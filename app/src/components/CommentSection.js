@@ -7,6 +7,7 @@ import {
   List,
   ListItem,
   ListItemText,
+  IconButton,
   Menu,
   MenuItem,
 } from "@mui/material";
@@ -19,11 +20,17 @@ import {
   addDoc,
   serverTimestamp,
   getDocs,
+  updateDoc,
+  deleteDoc,
+  doc,
 } from "firebase/firestore";
+import { Delete, Edit } from "@mui/icons-material"
 
 const CommentsSection = ({ activityId }) => {
   const [comments, setComments] = useState([]);
   const [commentInput, setCommentInput] = useState("");
+  const [editCommentId, setEditCommentId] = useState(null);
+  const [editCommentText, setEditCommentText] = useState("");
   const [users, setUsers] = useState([]);
   const [mentionMenuAnchor, setMentionMenuAnchor] = useState(null);
   // const [mentionQuery, setMentionQuery] = useState("");
@@ -137,12 +144,31 @@ const CommentsSection = ({ activityId }) => {
     }
   };
 
+  const handleDeleteComment = async (commentId) => {
+    try {
+      await deleteDoc(doc(db, "activities", activityId, "comments", commentId));
+    } catch (error) {
+      console.error("Error updating comment:", error);
+    }
+  };
+
+  const handleEditComment = async (commentId, newText) => {
+    try {
+      const commentRef = doc(db, "activities", activityId, "comments", commentId);
+      await updateDoc(commentRef, { text: newText });
+      setEditCommentId(null); // Exit edit mode
+      setEditCommentText(""); // Clear input
+    } catch (error) {
+      console.error("Error updating comment:", error);
+    }
+  };
+
   return (
     <Box sx={{ mt: 2 }}>
       <Typography variant="subtitle1" gutterBottom>
         Comments
       </Typography>
-
+  
       {/* Scrollable comments container */}
       <Box
         sx={{
@@ -160,15 +186,83 @@ const CommentsSection = ({ activityId }) => {
         <List>
           {comments.length > 0 ? (
             comments.map((comment) => (
-              <ListItem key={comment.id} alignItems="flex-start" disableGutters>
-                <ListItemText
-                  primary={
-                    <Typography fontWeight="bold" component="span">
-                      {comment.userName}
-                    </Typography>
-                  }
-                  secondary={comment.text}
-                />
+              <ListItem
+                key={comment.id}
+                alignItems="flex-start"
+                disableGutters
+                sx={{
+                  display: "flex",
+                  flexDirection: "column", // Stack comment text and buttons vertically
+                  alignItems: "flex-start",
+                  gap: 1, // Adds spacing
+                }}
+              >
+                {/* Editable Comment */}
+                {editCommentId === comment.id ? (
+                  <TextField
+                    fullWidth
+                    variant="outlined"
+                    size="small"
+                    value={editCommentText}
+                    onChange={(e) => setEditCommentText(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        handleEditComment(comment.id, editCommentText);
+                      }
+                    }}
+                  />
+                ) : (
+                  <ListItemText
+                    primary={
+                      <Typography fontWeight="bold" component="span">
+                        {comment.userName}
+                      </Typography>
+                    }
+                    secondary={
+                      <Typography sx={{ pl: 2 }}>{comment.text}</Typography>
+                    }
+                  />
+                )}
+  
+                {/* Edit & Delete Buttons (Only for Comment Owner) */}
+                {auth.currentUser?.uid === comment.userId && (
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1, mt: 0.5, }}>
+                    {/* Edit Button */}
+                    {editCommentId === comment.id ? (
+                      <Button
+                        variant="contained"
+                        size="small"
+                        onClick={() => handleEditComment(comment.id, editCommentText)}
+                      >
+                        Save
+                      </Button>
+                    ) : (
+                      <IconButton
+                        size="small"
+                        onClick={() => {
+                          setEditCommentId(comment.id);
+                          setEditCommentText(comment.text);
+                        }}
+                      >
+                        <Edit fontSize="small" />
+                      </IconButton>
+                    )}
+  
+                    {/* Delete Button */}
+                    <IconButton
+                      size="small"
+                      onClick={() => handleDeleteComment(comment.id)}
+                      sx={{
+                        "&:hover": {
+                          color: "red",
+                        },
+                      }}
+                    >
+                      <Delete fontSize="small" />
+                    </IconButton>
+                  </Box>
+                )}
               </ListItem>
             ))
           ) : (
@@ -183,7 +277,7 @@ const CommentsSection = ({ activityId }) => {
           )}
         </List>
       </Box>
-
+  
       {/* Input Field with Mention Suggestion */}
       <Box sx={{ display: "flex", gap: 1, position: "relative" }}>
         <TextField
@@ -205,7 +299,7 @@ const CommentsSection = ({ activityId }) => {
           Post
         </Button>
       </Box>
-
+  
       {/* Mention Suggestions Menu */}
       <Menu
         anchorEl={mentionMenuAnchor}
@@ -221,6 +315,6 @@ const CommentsSection = ({ activityId }) => {
       </Menu>
     </Box>
   );
-};
+}  
 
 export default CommentsSection;
