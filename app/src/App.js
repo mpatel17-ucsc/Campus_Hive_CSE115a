@@ -6,8 +6,9 @@ import { CircularProgress, Box } from "@mui/material";
 import Login from "./pages/login";
 import SignUp from "./pages/signUp";
 import CreateActivity from "./pages/createActivity";
+import MyActivities from "./pages/myActivities";
 import Home from "./pages/home";
-// import TopBar from "./components/test";
+import Test from "./components/test";
 import Settings from "./pages/settings";
 
 import { auth } from "./util/firebase";
@@ -18,7 +19,7 @@ const theme = createTheme(); // Create a default Material-UI theme
 const App = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(null);
   const [loading, setLoading] = useState(true);
-  // UseEffect hook to listen on changes to Firebase Authentication 
+  // UseEffect hook to listen on changes to Firebase Authentication
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setIsLoggedIn(!!user);
@@ -73,7 +74,9 @@ const App = () => {
 
           <Route path="/settings" element={<Settings />} />
 
-          {/* <Route path="/test" element={<TopBar />} /> */}
+          <Route path="/my-activities" element={<MyActivities />} />
+
+          <Route path="/test" element={<Test />} />
         </Routes>
       </ThemeProvider>
     );

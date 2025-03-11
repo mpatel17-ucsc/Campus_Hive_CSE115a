@@ -47,6 +47,10 @@ const LocationPicker = ({ onLocationSelect }) => {
         let city = "";
         let state = "";
 
+        const zip = place.address_components.find((comp) =>
+          comp.types.includes("postal_code"),
+        )?.short_name;
+
         for (const component of place.address_components) {
           if (component.types.includes("locality")) {
             city = component.long_name;
@@ -60,8 +64,8 @@ const LocationPicker = ({ onLocationSelect }) => {
         setMarkerPosition(coords);
 
         // Pass data to parent
-        if (city && state) {
-          onLocationSelect({ city, state, ...coords });
+        if (city && state && coords && zip) {
+          onLocationSelect({ city, state, ...coords, zip });
         }
       }
     }

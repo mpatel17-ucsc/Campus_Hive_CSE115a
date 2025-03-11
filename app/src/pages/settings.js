@@ -1,21 +1,31 @@
-import React, { useState, useEffect } from "react";
-import { auth, storage } from "../util/firebase"; // Ensure storage is exported in your firebase util
+import React, { useState, useEffect, useCallback } from "react";
+import { auth, storage, db } from "../util/firebase"; // Ensure storage is exported in your firebase util
+import { updateDoc, getDoc, doc } from "firebase/firestore";
+import { LoadScript, Autocomplete } from "@react-google-maps/api";
 import TopBar from "../components/TopBar";
-import { 
-  Container, 
-  Box, 
-  Avatar, 
-  Button, 
-  CircularProgress, 
-  Alert, 
-  TextField, 
-  Typography, 
-  Divider 
+import {
+  Stack,
+  Container,
+  Box,
+  Avatar,
+  Button,
+  CircularProgress,
+  Alert,
+  TextField,
+  Typography,
+  Divider,
+  Switch,
 } from "@mui/material";
+
+import {
+  NotificationsOff as NotificationsOffIcon,
+  NotificationsActive as NotificationsActiveIcon,
+} from "@mui/icons-material";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { updateProfile } from "firebase/auth";
 
 const Settings = () => {
+  const GOOGLE_MAPS_API_KEY = process.env.REACT_APP_maps;
   // State variables for user and avatar file upload
   const [user, setUser] = useState(null);
   const [avatarFile, setAvatarFile] = useState(null);
@@ -25,7 +35,8 @@ const Settings = () => {
 
   // New state variables for updating display name
   const [displayName, setDisplayName] = useState("");
-  const [displayNameSuccessMessage, setDisplayNameSuccessMessage] = useState("");
+  const [displayNameSuccessMessage, setDisplayNameSuccessMessage] =
+    useState("");
   const [displayNameErrorMessage, setDisplayNameErrorMessage] = useState("");
   const [updatingDisplayName, setUpdatingDisplayName] = useState(false);
 
@@ -90,14 +101,117 @@ const Settings = () => {
       setUser({ ...user, displayName: displayName });
     } catch (error) {
       console.error("Error updating display name:", error);
-      setDisplayNameErrorMessage("Failed to update display name. Please try again.");
+      setDisplayNameErrorMessage(
+        "Failed to update display name. Please try again.",
+      );
     }
     setUpdatingDisplayName(false);
   };
+
+  const [fetchedNotiSettings, setFetchedNotiSettings] = useState({});
+  const [notiSettings, setNotiSettings] = useState({});
+  const [zipCode, setZipCode] = useState("");
+  const [validZipSelected, setValidZipSelected] = useState(false);
+  const [autocomplete, setAutocomplete] = useState(null);
+  const [hasChanges, setHasChanges] = useState(false);
+
+  // Fetch user notification settings
+  const fetchUserInfo = useCallback(async () => {
+    const user = auth.currentUser;
+    if (!user) return;
+
+    const userRef = doc(db, "users", user.uid);
+    try {
+      const userSnap = await getDoc(userRef);
+      if (userSnap.exists()) {
+        const data = userSnap.data().notiSettings || { allow: false, zip: "" };
+        setFetchedNotiSettings(data);
+        setNotiSettings(data);
+        setZipCode(data.zip);
+        setValidZipSelected(!!data.zip);
+      } else {
+        console.log("No such user!");
+      }
+    } catch (error) {
+      console.error("Error fetching user:", error);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchUserInfo();
+  }, [fetchUserInfo]);
+
+  // Handle toggle notifications
+  const handleToggleNotifications = () => {
+    const newAllowState = !notiSettings.allow;
+
+    if (!newAllowState) {
+      // setZipCode(""); // Clear ZIP when disabling notifications
+      setValidZipSelected(false);
+    }
+
+    setNotiSettings((prev) => ({ ...prev, allow: newAllowState }));
+    setHasChanges(true);
+  };
+
+  // Handle ZIP code text input
+  const handleZipChange = (e) => {
+    setZipCode(e.target.value);
+    setValidZipSelected(false); // Reset valid ZIP selection
+    setHasChanges(true);
+  };
+
+  // Handle ZIP code selection from Google Places API dropdown
+  const onPlaceSelected = () => {
+    if (autocomplete) {
+      const place = autocomplete.getPlace();
+      if (place && place.address_components) {
+        const zip = place.address_components.find((comp) =>
+          comp.types.includes("postal_code"),
+        )?.short_name;
+        if (zip) {
+          setZipCode(zip);
+          setValidZipSelected(true); // ZIP is now valid
+          setHasChanges(true);
+        }
+      }
+    }
+  };
+
+  // Handle Save button click
+  const handleNotis = async () => {
+    const user = auth.currentUser;
+    if (!user) return;
+
+    const updatedData = {
+      "notiSettings.allow": notiSettings.allow,
+      "notiSettings.zip": notiSettings.allow ? zipCode : "",
+    };
+
+    try {
+      await updateDoc(doc(db, "users", user.uid), updatedData);
+      setFetchedNotiSettings({ allow: notiSettings.allow, zip: zipCode });
+      setHasChanges(false);
+    } catch (error) {
+      console.error("Error updating notification settings:", error);
+    }
+  };
+
+  // Check if Save button should be enabled
+  const isSaveDisabled =
+    !hasChanges || (notiSettings.allow && !validZipSelected);
+  // (!notiSettings.allow && zipCode.trim() !== ""); // ZIP must be empty when notifications are off
+
   // -----------------------------------------------------------------------------------------
 
   return (
-    <Box sx={{ backgroundColor: "#fafafa", minHeight: "100vh", paddingTop: "64px" }}>
+    <Box
+      sx={{
+        backgroundColor: "#fafafa",
+        minHeight: "100vh",
+        paddingTop: "64px",
+      }}
+    >
       <TopBar
         searchTerm={searchTerm}
         setSearchTerm={setSearchTerm}
@@ -117,7 +231,14 @@ const Settings = () => {
             {avatarErrorMessage}
           </Alert>
         )}
-        <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", mt: 4 }}>
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            mt: 4,
+          }}
+        >
           <Avatar
             src={user?.photoURL || "/default-avatar.png"}
             sx={{ width: 100, height: 100 }}
@@ -151,7 +272,13 @@ const Settings = () => {
             {displayNameErrorMessage}
           </Alert>
         )}
-        <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+          }}
+        >
           <Typography variant="h6" sx={{ mb: 2 }}>
             Update Display Name
           </Typography>
@@ -168,7 +295,73 @@ const Settings = () => {
             onClick={handleDisplayNameUpdate}
             disabled={updatingDisplayName}
           >
-            {updatingDisplayName ? <CircularProgress size={24} /> : "Update Display Name"}
+            {updatingDisplayName ? (
+              <CircularProgress size={24} />
+            ) : (
+              "Update Display Name"
+            )}
+          </Button>
+        </Box>
+
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+          }}
+        >
+          <Typography variant="h6" sx={{ mb: 2 }}>
+            Notifications
+          </Typography>
+
+          <Stack direction="row" alignItems="center" spacing={1}>
+            <Switch
+              edge="end"
+              checked={notiSettings.allow}
+              onChange={handleToggleNotifications}
+              inputProps={{ "aria-label": "toggle notifications" }}
+            />
+            {notiSettings.allow ? (
+              <NotificationsActiveIcon color="primary" />
+            ) : (
+              <NotificationsOffIcon color="disabled" />
+            )}
+            {notiSettings.allow && (
+              <>
+                <Typography variant="body1">
+                  Get notified for activities in
+                </Typography>
+                <LoadScript
+                  googleMapsApiKey={GOOGLE_MAPS_API_KEY}
+                  libraries={["places"]}
+                >
+                  <Autocomplete
+                    onLoad={setAutocomplete}
+                    onPlaceChanged={onPlaceSelected}
+                    restrictions={{ country: "us" }} // Restrict to the US
+                    options={{ types: ["(regions)"] }} // Prioritize regions (ZIPs included)
+                  >
+                    <Box sx={{ width: "100%", maxWidth: 400 }}>
+                      <TextField
+                        fullWidth
+                        label="Enter ZIP Code"
+                        variant="outlined"
+                        value={zipCode}
+                        onChange={handleZipChange}
+                      />
+                    </Box>
+                  </Autocomplete>
+                </LoadScript>
+              </>
+            )}
+          </Stack>
+
+          <Button
+            disabled={isSaveDisabled}
+            variant="outlined"
+            onClick={handleNotis}
+          >
+            Save
           </Button>
         </Box>
 

@@ -28,6 +28,7 @@ import {
   NotificationsOff as NotificationsOffIcon,
   NotificationsActive as NotificationsActiveIcon,
   Settings as SettingsIcon,
+  LocalActivity as LocalActivityIcon,
 } from "@mui/icons-material";
 
 import { doc, updateDoc } from "firebase/firestore";
@@ -36,7 +37,7 @@ import { signOut } from "firebase/auth";
 import { auth, db } from "../util/firebase";
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
-import { onAuthStateChanged } from "firebase/auth"
+import { onAuthStateChanged } from "firebase/auth";
 
 const TopBar = ({
   searchTerm,
@@ -46,7 +47,6 @@ const TopBar = ({
   setSelectedTags,
   sortBy,
   setSortBy, // New props for sorting
-
 }) => {
   const navigate = useNavigate();
 
@@ -170,8 +170,14 @@ const TopBar = ({
             </Select>
           </FormControl>
           <FormControl sx={{ minWidth: 200, height: 40 }}>
-            <InputLabel sx={{ fontSize: "0.85rem", top: -6 }}>Sort By</InputLabel>
-            <Select value={sortBy} onChange={handleSortChange} sx={{ height: 40, display: "flex", alignItems: "center" }}>
+            <InputLabel sx={{ fontSize: "0.85rem", top: -6 }}>
+              Sort By
+            </InputLabel>
+            <Select
+              value={sortBy}
+              onChange={handleSortChange}
+              sx={{ height: 40, display: "flex", alignItems: "center" }}
+            >
               <MenuItem value="">None</MenuItem>
               <MenuItem value="highestRated">Highest Rated</MenuItem>
               <MenuItem value="mostPopular">Most Popular</MenuItem>
@@ -196,12 +202,13 @@ const TopBar = ({
               <LogoutIcon />
             </IconButton>
             <Avatar
-              src={user?.photoURL || null} 
+              src={user?.photoURL || null}
               sx={{ bgcolor: "#1976d2", cursor: "pointer" }}
               onClick={toggleSidebar(true)}
             >
               {/* Fallback: if there is no photoURL, display first letter of the user's email */}
-              {!user?.photoURL && auth.currentUser?.email?.charAt(0).toUpperCase()}
+              {!user?.photoURL &&
+                auth.currentUser?.email?.charAt(0).toUpperCase()}
             </Avatar>
           </Box>
         </Toolbar>
@@ -234,11 +241,16 @@ const TopBar = ({
             </ListItemIcon>
             <ListItemText primary="Settings" />
           </ListItem>
+
+          <ListItem button onClick={() => navigate("/my-activities")}>
+            <ListItemIcon>
+              <LocalActivityIcon />
+            </ListItemIcon>
+            <ListItemText primary="My Activities" />
+          </ListItem>
         </List>
       </Drawer>
     </>
   );
 };
 export default TopBar;
-
-

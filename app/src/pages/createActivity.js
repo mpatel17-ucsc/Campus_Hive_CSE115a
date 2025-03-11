@@ -35,7 +35,7 @@ const CreateActivity = () => {
   const [tags, setTags] = useState([]);
   const [tagInput, setTagInput] = useState("");
   const [location, setLocation] = useState({});
-  const [selectedUniversity, setSelectedUniversity] = useState("")
+  const [selectedUniversity, setSelectedUniversity] = useState("");
 
   const [imageFiles, setImageFiles] = useState([]);
   const [imagePreviews, setImagePreviews] = useState([]);
@@ -43,15 +43,10 @@ const CreateActivity = () => {
   const handleLocationSelect = (location) => {
     console.log("Selected Location:", location);
     setLocation(location);
-    // const { city, state, coords } = location;
-    // console.log("Selected coor :", coords);
-    // setSelectedCity(city);
-    // setSelectedState(state);
-    // setCoords(coords);
   };
 
   const handleUniversitySelect = (university) => {
-    console.log("Selected University:", university)
+    console.log("Selected University:", university);
     setSelectedUniversity(university);
   };
 
@@ -135,7 +130,7 @@ const CreateActivity = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!location.state || !location.city) {
-      alert("Please select a valid state and city.");
+      alert("Please choose a more specific location");
       return;
     }
 
@@ -233,7 +228,6 @@ const CreateActivity = () => {
           />
 
           <LocationPicker onLocationSelect={handleLocationSelect} />
-
 
           {/* University Selector */}
           <UniversitySelector onSelectUniversity={handleUniversitySelect} />
