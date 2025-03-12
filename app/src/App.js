@@ -88,6 +88,7 @@ const App = () => {
             <Route path="/create-activity" element={<CreateActivity />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/my-activities" element={<MyActivities />} />
+            <Route path="/activity/:id" element={<ActivityDetail />} />
           </>
         ) : (
           <>

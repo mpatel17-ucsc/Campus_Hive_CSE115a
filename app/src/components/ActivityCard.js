@@ -84,10 +84,10 @@ const ActivityCard = ({ activity, owner = false, onDelete }) => {
       if (activitySnap.exists()) {
         const activityData = activitySnap.data();
         const currentUserId = activityData.userID// Replace with logic to get user ID
-        setHasUpvoted(activityData.upvotedBy.includes(currentUserId));
-        setHasDownvoted(activityData.downvotedBy.includes(currentUserId));
-        setUpvotes(activityData.upvotes);
-        setDownvotes(activityData.downvotes);
+        setHasUpvoted(activityData.upvotedBy?.includes(currentUserId));
+        setHasDownvoted(activityData.downvotedBy?.includes(currentUserId));
+        setUpvotes(activityData.upvotes || 0);
+        setDownvotes(activityData.downvotes || 0);
       }
     };
   
