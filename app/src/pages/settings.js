@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { auth, storage, db } from "../util/firebase"; // Ensure storage is exported in your firebase util
-import { updateDoc, getDoc, doc } from "firebase/firestore";
+import { updateDoc, getDoc, setDoc, doc } from "firebase/firestore";
 import { LoadScript, Autocomplete } from "@react-google-maps/api";
 import TopBar from "../components/TopBar";
 import {
@@ -23,7 +23,6 @@ import {
 } from "@mui/icons-material";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { updateProfile } from "firebase/auth";
-
 const Settings = () => {
   const GOOGLE_MAPS_API_KEY = process.env.REACT_APP_maps;
   // State variables for user and avatar file upload
@@ -73,11 +72,17 @@ const Settings = () => {
       await uploadBytes(storageRef, avatarFile);
       // Retrieve the file's download URL
       const downloadURL = await getDownloadURL(storageRef);
-      // Update the user's profile with the new photo URL
+      
+      // Update the user's profile in Firebase Authentication
       await updateProfile(user, { photoURL: downloadURL });
-      setAvatarSuccessMessage("Avatar updated successfully!");
+
+      // Update Firestore "users" collection with the new photoURL
+      const userRef = doc(db, "users", user.uid);
+      await setDoc(userRef, { photoURL: downloadURL }, { merge: true });
+
       // Update local state to reflect the new avatar
       setUser({ ...user, photoURL: downloadURL });
+      setAvatarSuccessMessage("Avatar updated successfully!");
       setAvatarFile(null);
     } catch (error) {
       console.error("Error updating avatar:", error);
