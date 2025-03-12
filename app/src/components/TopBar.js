@@ -215,25 +215,6 @@ const TopBar = ({
       </AppBar>
       <Drawer anchor="right" open={sidebarOpen} onClose={toggleSidebar(false)}>
         <List sx={{ width: 250 }}>
-          <ListItem>
-            <ListItemIcon>
-              {notificationsEnabled ? (
-                <NotificationsActiveIcon />
-              ) : (
-                <NotificationsOffIcon />
-              )}
-            </ListItemIcon>
-            <ListItemText primary="Enable Notifications" />
-            <Switch
-              edge="end"
-              checked={notificationsEnabled}
-              onChange={handleToggleNotifications}
-              inputProps={{ "aria-label": "toggle notifications" }}
-            />
-          </ListItem>
-
-          <Divider />
-
           {/* Settings Button */}
           <ListItem button onClick={() => navigate("/settings")}>
             <ListItemIcon>
