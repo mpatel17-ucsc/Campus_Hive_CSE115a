@@ -26,10 +26,10 @@ import {
   Room,
   Close,
 } from "@mui/icons-material";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { db, auth } from "../util/firebase";
 // import { debounce } from "lodash";
-
+import { useNavigate } from "react-router-dom";
 import CommentsSection from "./CommentSection";
 
 import {
@@ -42,6 +42,7 @@ import {
 } from "firebase/firestore";
 
 const ActivityCard = ({ activity, owner = false, onDelete }) => {
+  const navigate = useNavigate();
   // Get the currently logged-in user from Firebase Auth
   const user = auth.currentUser; 
   // reference to the Firestore document for this specific activity
@@ -76,14 +77,35 @@ const ActivityCard = ({ activity, owner = false, onDelete }) => {
   // state to store the current number of downvotes for an activity
   const [downvotes, setDownvotes] = useState(activity.downvotes || 0);
 
+  useEffect(() => {
+    const fetchActivityData = async () => {
+      const activityRef = doc(db, "activities", activity.id);
+      const activitySnap = await getDoc(activityRef);
+      if (activitySnap.exists()) {
+        const activityData = activitySnap.data();
+        const currentUserId = activityData.userID// Replace with logic to get user ID
+        setHasUpvoted(activityData.upvotedBy.includes(currentUserId));
+        setHasDownvoted(activityData.downvotedBy.includes(currentUserId));
+        setUpvotes(activityData.upvotes);
+        setDownvotes(activityData.downvotes);
+      }
+    };
+  
+    fetchActivityData();
+  }, [activity.id]);
+
   // Handle the deletion of an activity
-  const handleDelete = () => {
+  const handleDelete = (e) => {
+    e.stopPropagation();
     // close the confirmation dialog before proceeding with deletion
     setOpenDialog(false);
     // check if the onDelete function was passed, and if so, call the function to perform the deletion
     if (onDelete) {
       onDelete();
     }
+  };
+  const handleCardClick = () => {
+    navigate(`/activity/${activity.id}`, { state: { activity } });
   };
 
   // If user images exist, append them after the static map image.
@@ -93,13 +115,15 @@ const ActivityCard = ({ activity, owner = false, onDelete }) => {
   const totalImages = imagesToDisplay.length;
 
   // function to handle voting (upvotes & downvotes)
-  const handleVote = async (type) => {
+  const handleVote = async (type, e) => {
+    e.stopPropagation();
     try {
       // retrieve Firestore document. If it exists, proceed with vote updates
       const activitySnap = await getDoc(activityRef);
       if (activitySnap.exists()) {
         // get the user unique ID
-        const userId = user.uid;
+        const data = activitySnap.data();
+        const userId = data.userID // Replace with your logic to get the current user's ID
         // object to store updates for Firestore
         let updateData = {};
 
@@ -183,7 +207,8 @@ const ActivityCard = ({ activity, owner = false, onDelete }) => {
 
 
   // Handle moving on to the next image
-  const handleNext = () => {
+  const handleNext = (e) => {
+    e.stopPropagation();
     // ensure that we don't go beyond the last image
     if (activeStep < totalImages - 1) {
       // move to the next image
@@ -191,7 +216,8 @@ const ActivityCard = ({ activity, owner = false, onDelete }) => {
     }
   };
   // Handle moving to the previous image
-  const handleBack = () => {
+  const handleBack = (e) => {
+    e.stopPropagation();
     // ensure we don't go below the first image
     if (activeStep > 0) {
       // move to the previous image
@@ -199,10 +225,15 @@ const ActivityCard = ({ activity, owner = false, onDelete }) => {
     }
   };
 
+  const handleLocationClick = (e) => {
+    e.stopPropagation(); // Prevent the card from redirecting
+    window.open(mapsUrl, "_blank");
+  };
+
   return (
     // Grid Layout and Card Container
     <Grid item xs={12} sm={6} md={4} lg={3} key={activity.id}>
-      <Card sx={{ borderRadius: "12px", boxShadow: 3 }}>
+      <Card sx={{ borderRadius: "12px", boxShadow: 3, cursor: "pointer"}} onClick={handleCardClick}>
 
         {/* Remove Button (Only if Owner) */}
         {owner && (
@@ -225,7 +256,7 @@ const ActivityCard = ({ activity, owner = false, onDelete }) => {
                 <Button onClick={() => setOpenDialog(false)} color="primary">
                   Cancel
                 </Button>
-                <Button onClick={handleDelete} color="error">
+                <Button onClick={(e) => handleDelete(e)} color="error">
                   Delete
                 </Button>
               </DialogActions>
@@ -285,7 +316,7 @@ const ActivityCard = ({ activity, owner = false, onDelete }) => {
               <>
                 <Button
                   size="small"
-                  onClick={handleBack}
+                  onClick={(e) => handleBack(e)}
                   disabled={totalImages <= 1}
                   sx={{
                     position: "absolute",
@@ -302,7 +333,7 @@ const ActivityCard = ({ activity, owner = false, onDelete }) => {
                 </Button>
                 <Button
                   size="small"
-                  onClick={handleNext}
+                  onClick={(e) => handleNext(e)}
                   disabled={totalImages <= 1}
                   sx={{
                     position: "absolute",
@@ -337,7 +368,7 @@ const ActivityCard = ({ activity, owner = false, onDelete }) => {
             </Typography>
             <IconButton
               color="primary"
-              onClick={() => window.open(mapsUrl, "_blank")}
+              onClick={(e) => handleLocationClick(e)}
               sx={{ ml: 0.5 }}
             >
               <Room fontSize="small" />
@@ -377,21 +408,19 @@ const ActivityCard = ({ activity, owner = false, onDelete }) => {
           <Box sx={{ display: "flex", justifyContent: "space-between", mt: 2 }}>
             <Button
               startIcon={<ThumbUp />}
-              onClick={() => handleVote("upvotes")}
+              onClick={(e) => handleVote("upvotes", e)}
               sx={{ color: hasUpvoted ? "green" : "default" }}
             >
               {upvotes}
             </Button>
             <Button
               startIcon={<ThumbDown />}
-              onClick={() => handleVote("downvotes")}
+              onClick={(e) => handleVote("downvotes", e)}
               sx={{ color: hasDownvoted ? "red" : "default" }} 
             >
               {downvotes}
             </Button>
           </Box>
-          {/* Display the comment section */}
-          <CommentsSection activityId={activity.id} />
         </CardContent>
       </Card>
     </Grid>
