@@ -10,6 +10,7 @@ import CreateActivity from "./pages/createActivity";
 import MyActivities from "./pages/myActivities";
 import Home from "./pages/home";
 import Settings from "./pages/settings";
+import ActivityDetail from "./pages/ActivityDetail";
 
 import { auth, db } from "./util/firebase";
 import { onAuthStateChanged } from "firebase/auth";
@@ -87,6 +88,7 @@ const App = () => {
             <Route path="/create-activity" element={<CreateActivity />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/my-activities" element={<MyActivities />} />
+            <Route path="/activity/:id" element={<ActivityDetail />} />
           </>
         ) : (
           <>
@@ -135,6 +137,8 @@ const App = () => {
           <Route path="/settings" element={<Settings />} />
 
           <Route path="/my-activities" element={<MyActivities />} />
+
+          <Route path="/activity/:id" element={<ActivityDetail />} />
 
         </Routes>
       </ThemeProvider>
