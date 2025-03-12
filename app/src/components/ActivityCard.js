@@ -14,6 +14,7 @@ import {
   DialogTitle,
   Chip,
   MobileStepper,
+  Avatar,
 } from "@mui/material";
 
 import SwipeableViews from "react-swipeable-views";
@@ -67,7 +68,7 @@ const ActivityCard = ({ activity, owner = false, onDelete }) => {
     // check if userID is in the downvotedBy array to avoid duplication
     activity.downvotedBy?.includes(user.uid),
   );
-
+  const [creator, setCreator] = useState({ displayName: " ", photoURL: null });
   // state to manage whether the delete confirmation dialog is open
   const [openDialog, setOpenDialog] = useState(false);
   
@@ -90,9 +91,21 @@ const ActivityCard = ({ activity, owner = false, onDelete }) => {
         setDownvotes(activityData.downvotes || 0);
       }
     };
-  
+    const fetchCreatorData = async () => {
+      if (!activity.userID) return;
+      const userRef = doc(db, "users", activity.userID);
+      const userSnap = await getDoc(userRef);
+      if (userSnap.exists()) {
+        setCreator({
+          displayName: activity.userName || " ",
+          photoURL: userSnap.data().photoURL || null,
+        });
+      }
+    };
+
     fetchActivityData();
-  }, [activity.id]);
+    fetchCreatorData();
+  }, [activity.id, activity.userID, activity.userName]);
 
   // Handle the deletion of an activity
   const handleDelete = (e) => {
@@ -107,7 +120,7 @@ const ActivityCard = ({ activity, owner = false, onDelete }) => {
   const handleCardClick = () => {
     navigate(`/activity/${activity.id}`, { state: { activity } });
   };
-
+  
   // If user images exist, append them after the static map image.
   const init = activity.imageUrls || [];
   let imagesToDisplay = init;
@@ -386,6 +399,10 @@ const ActivityCard = ({ activity, owner = false, onDelete }) => {
           <Typography variant="body1" sx={{ mt: 1 }}>
             {activity.description}
           </Typography>
+          <Box sx={{ display: "flex", alignItems: "center", mt: 2 }}>
+            <Avatar src={creator.photoURL} alt={creator.displayName} sx={{ width: 32, height: 32, mr: 1 }} />
+            <Typography variant="subtitle2">{creator.displayName}</Typography>
+          </Box>
           <Typography variant="subtitle2" color="primary" sx={{ mt: 1 }}>
             ⭐ {activity.rating} / 5
           </Typography>
