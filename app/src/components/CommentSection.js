@@ -65,7 +65,7 @@ const CommentsSection = ({ activityId }) => {
   // Ensure `fetchComments` runs when the component loads
   useEffect(() => {
     fetchComments();
-  });
+  }, [activityId]);
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -73,10 +73,12 @@ const CommentsSection = ({ activityId }) => {
         // Fetch the "users" collection from Firestore
         const querySnapshot = await getDocs(collection(db, "users"));
         // Map through the documents and extract each user's ID and email
-        const userList = querySnapshot.docs.map((doc) => ({
-          id: doc.id, // Unique document ID for the user
-          email: doc.data().email, // Extract email since userName isn't available (UPDATE when username exists)
-        }));
+        const userList = querySnapshot.docs
+        .map((doc) => ({
+          id: doc.id,
+          username: doc.data().username || null, // Ensure username exists
+        }))
+        .filter((user) => user.username !== null); // Remove users without a username
         // Update state with the list of users
         setUsers(userList);
       } catch (error) {
@@ -100,24 +102,28 @@ const CommentsSection = ({ activityId }) => {
 
       if (!query) {
         // If only "@" is typed, show all available users
-        setMentionResults(users.map((user) => user.email).filter(Boolean)); // Ensure valid emails
+        setMentionResults(users.map((user) => user.username).filter(Boolean)); // Ensure valid usernames
         setMentionMenuAnchor(e.currentTarget); // Keep dropdown active
         return;
       }
 
-      // Filter users whose emails start with the given query (case-insensitive)
-      setMentionResults(
-        users
-          .map((user) => user.email) // Extract emails
-          .filter((email) => email && email.toLowerCase().startsWith(query)), // Match based on input
-      );
-      // Keep the dropdown positioned relative to the input field
+      
+    // Filter usernames based on input query
+    const filteredUsers = users
+      .map((user) => user.username)
+      .filter((username) => username && username.toLowerCase().startsWith(query));
+
+    setMentionResults(filteredUsers);
+
+    if (filteredUsers.length > 0) {
       setMentionMenuAnchor(e.currentTarget);
     } else {
-      // Reset mention suggestions when "@" is not detected
-      setMentionResults([]);
       setMentionMenuAnchor(null);
     }
+  } else {
+    setMentionResults([]);
+    setMentionMenuAnchor(null);
+  }
   };
 
   const handleMentionSelect = (username) => {
@@ -135,34 +141,27 @@ const CommentsSection = ({ activityId }) => {
   };
 
   const handleAddComment = async () => {
-    // Prevent submitting empty comments
     if (!commentInput.trim()) return;
     try {
-      // Get a reference to the comments collection for this activity
       const commentsRef = collection(db, "activities", activityId, "comments");
-      // Add the new comment to Firestore with timestamp and user info
-      await addDoc(commentsRef, {
+      const newComment = {
         text: commentInput,
-        createdAt: serverTimestamp(), // Automatically generate server-side timestamp
-        userId: auth.currentUser.uid, // ID of the currently logged-in user
-        userName: auth.currentUser.displayName || "Anonymous", // Use display name or fallback to "Anonymous"
-      });
-      // 🚨 TEMPORARY SOLUTION: Fully reload the page after a comment is posted
-      // This should be replaced with a more efficient state-based update in a future sprint
-      window.location.reload();
-      // Reset the input field
-      setCommentInput("");
-      // Clear mention results and close the mention menu
-      setMentionResults([]);
+        createdAt: serverTimestamp(),
+        userId: auth.currentUser.uid,
+        userName: auth.currentUser.displayName || "Anonymous",
+      };
+      const docRef = await addDoc(commentsRef, newComment);
+  
+      setComments([...comments, { id: docRef.id, ...newComment }]); // Append new comment to state
+      window.location.reload()
+      setCommentInput(""); // Clear input
+      setMentionResults([]); // Clear mentions
       setMentionMenuAnchor(null);
-      // Fetch the updated list of comments (without reloading the page)
-      fetchComments();
-      // Restore focus to the comment input field so the user can continue typing
-      setTimeout(() => document.getElementById("comment-input").focus(), 0);
     } catch (error) {
       console.error("Error adding comment:", error);
     }
   };
+  
 
   const handleDeleteComment = async (commentId) => {
     try {
@@ -335,9 +334,9 @@ const CommentsSection = ({ activityId }) => {
         onClose={() => setMentionMenuAnchor(null)}
         autoFocus={false} // Prevents accidental close on first selection
       >
-        {mentionResults.map((user) => (
-          <MenuItem key={user} onClick={() => handleMentionSelect(user)}>
-            {user}
+        {mentionResults.map((username) => (
+          <MenuItem key={username} onClick={() => handleMentionSelect(username)}>
+            @{username}
           </MenuItem>
         ))}
       </Menu>
