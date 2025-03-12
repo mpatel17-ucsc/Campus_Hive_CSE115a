@@ -8,7 +8,6 @@ import SignUp from "./pages/signUp";
 import CreateActivity from "./pages/createActivity";
 import MyActivities from "./pages/myActivities";
 import Home from "./pages/home";
-import Test from "./components/test";
 import Settings from "./pages/settings";
 
 import { auth } from "./util/firebase";
@@ -76,7 +75,6 @@ const App = () => {
 
           <Route path="/my-activities" element={<MyActivities />} />
 
-          <Route path="/test" element={<Test />} />
         </Routes>
       </ThemeProvider>
     );
