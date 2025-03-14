@@ -7,7 +7,6 @@ import { ref, uploadBytes, getDownloadURL, listAll } from "firebase/storage";
 
 import { db, storage, auth } from "../util/firebase";
 import LocationPicker from "../components/LocationPicker";
-import UniversitySelector from "../components/UniversitySelector";
 
 import {
   Container,
@@ -35,7 +34,7 @@ const CreateActivity = () => {
   const [tags, setTags] = useState([]);
   const [tagInput, setTagInput] = useState("");
   const [location, setLocation] = useState({});
-  const [selectedUniversity, setSelectedUniversity] = useState("");
+  // const [selectedUniversity, setSelectedUniversity] = useState("");
 
   const [imageFiles, setImageFiles] = useState([]);
   const [imagePreviews, setImagePreviews] = useState([]);
@@ -45,10 +44,10 @@ const CreateActivity = () => {
     setLocation(location);
   };
 
-  const handleUniversitySelect = (university) => {
-    console.log("Selected University:", university);
-    setSelectedUniversity(university);
-  };
+  //const handleUniversitySelect = (university) => {
+  //  console.log("Selected University:", university);
+  //  setSelectedUniversity(university);
+  //};
 
   const handleAddTag = () => {
     if (tagInput.trim() && !tags.includes(tagInput.trim())) {
@@ -181,7 +180,7 @@ const CreateActivity = () => {
         description,
         rating,
         tags,
-        selectedUniversity,
+        // selectedUniversity,
         createdAt: serverTimestamp(),
         userID: user.uid,
         userName: user.displayName,
@@ -229,9 +228,6 @@ const CreateActivity = () => {
 
           <LocationPicker onLocationSelect={handleLocationSelect} />
 
-          {/* University Selector */}
-          {/* <UniversitySelector onSelectUniversity={handleUniversitySelect} /> */}
-
           {/* Description Input */}
           <TextField
             label="Description"
@@ -242,7 +238,7 @@ const CreateActivity = () => {
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             required
-            sx={{ mb: 3 }}
+            sx={{ mt: 3, mb: 3 }}
           />
 
           <Box sx={{ display: "flex", alignItems: "center", mb: 3 }}>
