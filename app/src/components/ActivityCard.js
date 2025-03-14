@@ -240,7 +240,7 @@ const ActivityCard = ({ activity, owner = false, onDelete }) => {
         {owner && (
           <>
             {/* Open a confirmation dialog and be able to delete an activity */}
-            <IconButton onClick={() => setOpenDialog(true)}>
+            <IconButton onClick={(event) => {event.stopPropagation(); setOpenDialog(true);}}>
               <Close />
             </IconButton>
 
@@ -254,7 +254,7 @@ const ActivityCard = ({ activity, owner = false, onDelete }) => {
                 </DialogContentText>
               </DialogContent>
               <DialogActions>
-                <Button onClick={() => setOpenDialog(false)} color="primary">
+                <Button onClick={(e) => {e.stopPropagation(); setOpenDialog(false)}} color="primary">
                   Cancel
                 </Button>
                 <Button onClick={(e) => handleDelete(e)} color="error">
