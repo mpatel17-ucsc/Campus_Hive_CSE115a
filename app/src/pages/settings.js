@@ -232,12 +232,12 @@ const Settings = () => {
             src={user?.photoURL || "/default-avatar.png"}
             sx={{ width: 100, height: 100 }}
           />
-          <input
-            accept="image/*"
-            type="file"
-            onChange={handleFileChange}
-            style={{ marginTop: "20px" }}
-          />
+          {/* <input */}
+          {/*   accept="image/*" */}
+          {/*   type="file" */}
+          {/*   onChange={handleFileChange} */}
+          {/*   style={{ marginTop: "20px" }} */}
+          {/* /> */}
           <Button
             variant="contained"
             sx={{ mt: 2 }}

@@ -42,7 +42,7 @@ function getOAuth2Client() {
   return OAuth2Client;
 }
 
-async function sendEmails(activityZip) {
+async function sendEmails(activityZip, activityTitle) {
   const db = getFirestore();
 
   // Get users with notifications allowed and matching ZIP
@@ -83,7 +83,7 @@ async function sendEmails(activityZip) {
           from: "rivaidun@ucsc.edu",
           to: userData.email,
           subject: "New activity alert in your area!",
-          text: `Hey there! A new activity was just posted in the area (${activityZip}). Check out Campus Hive for more details!`,
+          text: `Hey there! A new activity was just posted: ${activityTitle} in the area (${activityZip}). Check out Campus Hive for more details!`,
         });
         console.log(`Email sent successfully to ${userData.email}`);
       } catch (error) {
@@ -166,7 +166,7 @@ exports.sendEmailOnActCreate = onDocumentCreated(
       const zip = activityData.location.zip;
       console.log(`New activity created in ZIP: ${zip}`);
 
-      await sendEmails(zip);
+      await sendEmails(zip, activityData.title);
       return null;
     } catch (error) {
       console.error("Error in function execution:", error);

@@ -44,7 +44,7 @@ import {
 const ActivityCard = ({ activity, owner = false, onDelete }) => {
   const navigate = useNavigate();
   // Get the currently logged-in user from Firebase Auth
-  const user = auth.currentUser; 
+  const user = auth.currentUser;
   // reference to the Firestore document for this specific activity
   const activityRef = doc(db, "activities", activity.id);
   // State to keep track of the active image step in the SwipeableViews
@@ -70,7 +70,7 @@ const ActivityCard = ({ activity, owner = false, onDelete }) => {
 
   // state to manage whether the delete confirmation dialog is open
   const [openDialog, setOpenDialog] = useState(false);
-  
+
   // state to store the current number of upvotes for an activity
   const [upvotes, setUpvotes] = useState(activity.upvotes || 0);
 
@@ -83,14 +83,14 @@ const ActivityCard = ({ activity, owner = false, onDelete }) => {
       const activitySnap = await getDoc(activityRef);
       if (activitySnap.exists()) {
         const activityData = activitySnap.data();
-        const currentUserId = activityData.userID// Replace with logic to get user ID
+        const currentUserId = activityData.userID; // Replace with logic to get user ID
         setHasUpvoted(activityData.upvotedBy?.includes(currentUserId));
         setHasDownvoted(activityData.downvotedBy?.includes(currentUserId));
         setUpvotes(activityData.upvotes || 0);
         setDownvotes(activityData.downvotes || 0);
       }
     };
-  
+
     fetchActivityData();
   }, [activity.id]);
 
@@ -123,7 +123,7 @@ const ActivityCard = ({ activity, owner = false, onDelete }) => {
       if (activitySnap.exists()) {
         // get the user unique ID
         const data = activitySnap.data();
-        const userId = data.userID // Replace with your logic to get the current user's ID
+        const userId = data.userID; // Replace with your logic to get the current user's ID
         // object to store updates for Firestore
         let updateData = {};
 
@@ -167,8 +167,8 @@ const ActivityCard = ({ activity, owner = false, onDelete }) => {
             // increase upvote count in the UI
             setUpvotes((prev) => prev + 1);
           }
-        } 
-        
+        }
+
         // handle the case when the user is DOWNVOTING
         else if (type === "downvotes") {
           if (hasDownvoted) {
@@ -205,7 +205,6 @@ const ActivityCard = ({ activity, owner = false, onDelete }) => {
     }
   };
 
-
   // Handle moving on to the next image
   const handleNext = (e) => {
     e.stopPropagation();
@@ -233,8 +232,10 @@ const ActivityCard = ({ activity, owner = false, onDelete }) => {
   return (
     // Grid Layout and Card Container
     <Grid item xs={12} sm={6} md={4} lg={3} key={activity.id}>
-      <Card sx={{ borderRadius: "12px", boxShadow: 3, cursor: "pointer"}} onClick={handleCardClick}>
-
+      <Card
+        sx={{ borderRadius: "12px", boxShadow: 3, cursor: "pointer" }}
+        onClick={handleCardClick}
+      >
         {/* Remove Button (Only if Owner) */}
         {owner && (
           <>
@@ -302,7 +303,10 @@ const ActivityCard = ({ activity, owner = false, onDelete }) => {
                     sx={{
                       width: activeStep === index ? "10px" : "8px", // Slightly bigger for active dot
                       height: activeStep === index ? "10px" : "8px",
-                      backgroundColor: activeStep === index ? "#fff" : "rgba(255, 255, 255, 0.5)",
+                      backgroundColor:
+                        activeStep === index
+                          ? "#fff"
+                          : "rgba(255, 255, 255, 0.5)",
                       borderRadius: "50%",
                       transition: "all 0.3s ease",
                     }}
@@ -358,7 +362,7 @@ const ActivityCard = ({ activity, owner = false, onDelete }) => {
         {/* Display the name of the activity location */}
         <CardContent>
           <Typography variant="h6" fontWeight="bold">
-            {activity.locationName}
+            {activity.placeName}
           </Typography>
 
           {/* Display the Location including the Google Maps link button (City, State) */}
@@ -378,7 +382,8 @@ const ActivityCard = ({ activity, owner = false, onDelete }) => {
           {/* Displaying the College Name */}
           {activity.selectedUniversity && (
             <Typography variant="body2" color="textSecondary">
-              <strong>College: </strong>{activity.selectedUniversity}
+              <strong>College: </strong>
+              {activity.selectedUniversity}
             </Typography>
           )}
 
@@ -416,7 +421,7 @@ const ActivityCard = ({ activity, owner = false, onDelete }) => {
             <Button
               startIcon={<ThumbDown />}
               onClick={(e) => handleVote("downvotes", e)}
-              sx={{ color: hasDownvoted ? "red" : "default" }} 
+              sx={{ color: hasDownvoted ? "red" : "default" }}
             >
               {downvotes}
             </Button>
