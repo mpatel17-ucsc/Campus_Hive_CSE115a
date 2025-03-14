@@ -6,7 +6,6 @@ import TopBar from "../components/TopBar";
 import ActivityCard from "../components/ActivityCard";
 import { Container, Typography, Divider, Stack, Box } from "@mui/material";
 
-
 import {
   collection,
   query,
@@ -22,11 +21,11 @@ const MyActivities = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [displayName, setDisplayName] = useState("");
-  
+
   // These state variables and default props for TopBar prevent errors
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedTags, setSelectedTags] = useState([]);
-  const tags = []; // Default empty array; adjust if needed
+  // const [searchTerm, setSearchTerm] = useState("");
+  // const [selectedTags, setSelectedTags] = useState([]);
+  // const tags = []; // Default empty array; adjust if needed
   // Set current user from Firebase Auth and initialize displayName
   useEffect(() => {
     if (auth.currentUser) {
@@ -71,19 +70,21 @@ const MyActivities = () => {
     }
   };
   if (!activities.length) {
+    console.log("No activities");
     return (
       <>
-        <TopBar
-          searchTerm={searchTerm}
-          setSearchTerm={setSearchTerm}
-          tags={[]}
-          selectedTags={selectedTags}
-          setSelectedTags={setSelectedTags}
-        />
+        <TopBar showSearch={false} />
 
         <Container sx={{ textAlign: "center", mt: 12 }}>
-          <Typography variant="h5">No posts yet. Click on the Create Activity button to get started!</Typography>
-          <Button variant="contained" color="primary" onClick={() => navigate("/create-activity")} sx={{ mt: 2 }}>
+          <Typography variant="h5">
+            No posts yet. Click on the Create Activity button to get started!
+          </Typography>
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={() => navigate("/create-activity")}
+            sx={{ mt: 2 }}
+          >
             Create Activity
           </Button>
         </Container>
@@ -93,13 +94,7 @@ const MyActivities = () => {
 
   return (
     <Container maxWidth="md">
-      <TopBar
-        searchTerm={searchTerm}
-        setSearchTerm={setSearchTerm}
-        tags={[]}
-        selectedTags={selectedTags}
-        setSelectedTags={setSelectedTags}
-      />
+      <TopBar showSearch={false} />
       <Container sx={{ textAlign: "center", mt: 12 }}>
         <Typography variant="h4" sx={{ mt: 3, mb: 1 }}>
           My Activities
@@ -111,10 +106,13 @@ const MyActivities = () => {
         spacing={2}
         flexWrap="wrap"
         justifyContent="flex-start"
-        sx={{ alignItems: 'flex-start' }}
+        sx={{ alignItems: "flex-start" }}
       >
         {activities.map((activity) => (
-          <Box key={activity.id} sx={{ width: 'calc(33.33% - 16px)', marginBottom: 2 }}>
+          <Box
+            key={activity.id}
+            sx={{ width: "calc(33.33% - 16px)", marginBottom: 2 }}
+          >
             <ActivityCard
               activity={activity}
               owner={true}
@@ -123,34 +121,8 @@ const MyActivities = () => {
           </Box>
         ))}
       </Stack>
-
     </Container>
   );
-  
-//  return (
-//    <>
-//      <TopBar
-//        searchTerm={searchTerm}
-//        setSearchTerm={setSearchTerm}
-//        tags={tags}
-//        selectedTags={selectedTags}
-//        setSelectedTags={setSelectedTags}
-//      />
-//      <h1>My Activities</h1>
-//      <hr style={{ width: "100%", border: "1px solid #ccc" }} />
-//      <Grid container spacing={2}>
-//        {activities.map((activity) => (
-//          <ActivityCard
-//            key={activity.id}
-//            activity={activity}
-//            owner={true}
-//            onDelete={handleDelete(activity.id)}
-//          />
-//        ))}
-//      </Grid>
-//    </>
-//  );
-
 };
 
 export default MyActivities;

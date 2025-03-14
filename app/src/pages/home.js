@@ -139,17 +139,6 @@ const Home = () => {
         setSortBy={setSortBy} // Pass sorting function
       />
 
-      {/* University Dropdown from UniversityHome component */}
-      {/* <Box */}
-      {/*   sx={{ */}
-      {/*     padding: "20px", */}
-      {/*     backgroundColor: "#fff", */}
-      {/*     borderRadius: "8px", */}
-      {/*     mb: 4, */}
-      {/*   }} */}
-      {/* > */}
-      {/*   <UniversityHome onSelectUniversity={handleUniversitySelect} /> */}
-      {/* </Box> */}
       {loading ? (
         <Box
           sx={{
@@ -175,7 +164,9 @@ const Home = () => {
               {successMessage}
             </Alert>
           )}
-          {/* <HomeMap locations={locations} /> */}
+
+          <HomeMap locations={locations} />
+          <br></br>
 
           <Grid container spacing={2}>
             {filteredActivities.map((activity) => (

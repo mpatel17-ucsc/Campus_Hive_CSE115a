@@ -230,7 +230,7 @@ const CreateActivity = () => {
           <LocationPicker onLocationSelect={handleLocationSelect} />
 
           {/* University Selector */}
-          <UniversitySelector onSelectUniversity={handleUniversitySelect} />
+          {/* <UniversitySelector onSelectUniversity={handleUniversitySelect} /> */}
 
           {/* Description Input */}
           <TextField

@@ -40,11 +40,6 @@ const Settings = () => {
   const [displayNameErrorMessage, setDisplayNameErrorMessage] = useState("");
   const [updatingDisplayName, setUpdatingDisplayName] = useState(false);
 
-  // These state variables and default props for TopBar prevent errors
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedTags, setSelectedTags] = useState([]);
-  const tags = []; // Default empty array; adjust if needed
-
   // Set current user from Firebase Auth and initialize displayName
   useEffect(() => {
     if (auth.currentUser) {
@@ -212,13 +207,7 @@ const Settings = () => {
         paddingTop: "64px",
       }}
     >
-      <TopBar
-        searchTerm={searchTerm}
-        setSearchTerm={setSearchTerm}
-        tags={tags}
-        selectedTags={selectedTags}
-        setSelectedTags={setSelectedTags}
-      />
+      <TopBar showSearch={false} />
       <Container sx={{ mt: 4 }}>
         {/* Avatar Update Section */}
         {avatarSuccessMessage && (

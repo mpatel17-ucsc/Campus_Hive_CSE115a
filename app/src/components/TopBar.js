@@ -40,13 +40,14 @@ import { useState, useEffect } from "react";
 import { onAuthStateChanged } from "firebase/auth";
 
 const TopBar = ({
-  searchTerm,
-  setSearchTerm,
-  tags,
-  selectedTags,
-  setSelectedTags,
+  searchTerm = "",
+  setSearchTerm = () => {},
+  tags = [],
+  selectedTags = [],
+  setSelectedTags = () => {},
   sortBy,
   setSortBy, // New props for sorting
+  showSearch = true,
 }) => {
   const navigate = useNavigate();
 
@@ -105,84 +106,88 @@ const TopBar = ({
           <Typography variant="h6" sx={{ fontWeight: "bold" }}>
             Campus Hive
           </Typography>
-
           {/* Search Bar */}
-          <TextField
-            variant="outlined"
-            placeholder="Search activities..."
-            size="small"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            sx={{ width: "30%" }}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <SearchIcon />
-                </InputAdornment>
-              ),
-            }}
-          />
 
-          {/* Tag Filter Dropdown */}
-          <FormControl sx={{ minWidth: 200, height: 40 }}>
-            <InputLabel sx={{ fontSize: "0.85rem", top: -6 }}>
-              Filter by Tags
-            </InputLabel>
-            <Select
-              multiple
-              value={selectedTags}
-              onChange={handleTagChange}
-              sx={{ height: 40, display: "flex", alignItems: "center" }}
-              renderValue={(selected) => (
-                <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
-                  {selected.map((tag) => (
-                    <Chip
-                      key={tag}
-                      label={tag}
-                      onMouseDown={(event) => event.stopPropagation()}
-                      onDelete={() => handleTagDelete(tag)}
-                      color="primary"
-                      variant="outlined"
-                      sx={{
-                        height: 24,
-                        fontSize: "0.75rem",
-                        borderRadius: "4px",
-                        border: "1px solid #1976d2",
-                        marginBottom: "5px",
-                      }}
-                    />
+          {showSearch && (
+            <>
+              <TextField
+                variant="outlined"
+                placeholder="Search activities..."
+                size="small"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                sx={{ width: "30%" }}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <SearchIcon />
+                    </InputAdornment>
+                  ),
+                }}
+              />
+              {/* Tag Filter Dropdown */}
+              <FormControl sx={{ minWidth: 200, height: 40 }}>
+                <InputLabel sx={{ fontSize: "0.85rem", top: -6 }}>
+                  Filter by Tags
+                </InputLabel>
+                <Select
+                  multiple
+                  value={selectedTags}
+                  onChange={handleTagChange}
+                  sx={{ height: 40, display: "flex", alignItems: "center" }}
+                  renderValue={(selected) => (
+                    <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
+                      {selected.map((tag) => (
+                        <Chip
+                          key={tag}
+                          label={tag}
+                          onMouseDown={(event) => event.stopPropagation()}
+                          onDelete={() => handleTagDelete(tag)}
+                          color="primary"
+                          variant="outlined"
+                          sx={{
+                            height: 24,
+                            fontSize: "0.75rem",
+                            borderRadius: "4px",
+                            border: "1px solid #1976d2",
+                            marginBottom: "5px",
+                          }}
+                        />
+                      ))}
+                    </Box>
+                  )}
+                  MenuProps={{
+                    PaperProps: {
+                      style: {
+                        maxHeight: 300,
+                      },
+                    },
+                  }}
+                >
+                  {tags.map((tag) => (
+                    <MenuItem key={tag} value={tag}>
+                      {tag}
+                    </MenuItem>
                   ))}
-                </Box>
-              )}
-              MenuProps={{
-                PaperProps: {
-                  style: {
-                    maxHeight: 300,
-                  },
-                },
-              }}
-            >
-              {tags.map((tag) => (
-                <MenuItem key={tag} value={tag}>
-                  {tag}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-          <FormControl sx={{ minWidth: 200, height: 40 }}>
-            <InputLabel sx={{ fontSize: "0.85rem", top: -6 }}>
-              Sort By
-            </InputLabel>
-            <Select
-              value={sortBy}
-              onChange={handleSortChange}
-              sx={{ height: 40, display: "flex", alignItems: "center" }}
-            >
-              <MenuItem value="">None</MenuItem>
-              <MenuItem value="highestRated">Highest Rated</MenuItem>
-              <MenuItem value="mostPopular">Most Popular</MenuItem>
-            </Select>
-          </FormControl>
+                </Select>
+              </FormControl>
+              <FormControl sx={{ minWidth: 200, height: 40 }}>
+                <InputLabel sx={{ fontSize: "0.85rem", top: -6 }}>
+                  Sort By
+                </InputLabel>
+                <Select
+                  value={sortBy}
+                  onChange={handleSortChange}
+                  sx={{ height: 40, display: "flex", alignItems: "center" }}
+                >
+                  <MenuItem value="">None</MenuItem>
+                  <MenuItem value="highestRated">Highest Rated</MenuItem>
+                  <MenuItem value="mostPopular">Most Popular</MenuItem>
+                </Select>
+              </FormControl>
+            </>
+          )}
+
           <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
             <IconButton
               color="inherit"
@@ -213,6 +218,7 @@ const TopBar = ({
           </Box>
         </Toolbar>
       </AppBar>
+
       <Drawer anchor="right" open={sidebarOpen} onClose={toggleSidebar(false)}>
         <List sx={{ width: 250 }}>
           {/* Settings Button */}
