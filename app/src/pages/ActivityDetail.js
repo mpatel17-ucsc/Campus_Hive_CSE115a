@@ -123,7 +123,7 @@ const ActivityDetail = () => {
       <Card sx={{ borderRadius: "12px", boxShadow: 3, position: "relative" }}>
         <CardMedia component="img" height="300" image={activity.imageUrls?.[0] || "/placeholder.jpg"} alt="Activity Image" sx={{ objectFit: "cover" }} />
         <CardContent>
-          <Typography variant="h4" fontWeight="bold">{activity.locationName}</Typography>
+          <Typography variant="h4" fontWeight="bold">{activity.placeName}</Typography>
           <Box sx={{ display: "flex", alignItems: "center", mt: 1 }}>
             <Typography variant="body1" color="textSecondary">{activity.location?.city}, {activity.location?.state}</Typography>
             <IconButton color="primary" onClick={() => window.open(`https://www.google.com/maps?q=${activity.location?.lat},${activity.location?.lng}`, "_blank")} sx={{ ml: 0.5 }}>
