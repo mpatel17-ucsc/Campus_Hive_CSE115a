@@ -137,6 +137,7 @@ const Home = () => {
         setSelectedTags={setSelectedTags}
         sortBy={sortBy} // Pass sortBy state
         setSortBy={setSortBy} // Pass sorting function
+        activities={activities}
       />
 
       {loading ? (

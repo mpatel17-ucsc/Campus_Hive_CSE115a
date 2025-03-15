@@ -1,7 +1,13 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { createUserWithEmailAndPassword } from "firebase/auth"; // firebase function for creating user with email and password
 import { auth, db } from "../util/firebase";
-import { doc, setDoc, serverTimestamp, getDocs, where, collection, query } from "firebase/firestore"; // firebase functions for storing user data in firestore
+import {
+  doc,
+  setDoc,
+  serverTimestamp,
+  getDocs,
+  collection,
+} from "firebase/firestore"; // firebase functions for storing user data in firestore
 import { useNavigate } from "react-router-dom"; // react router dom for navigation/redirection
 
 const SignUp = () => {
@@ -12,20 +18,32 @@ const SignUp = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [usernameAvailable, setUsernameAvailable] = useState(null);
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [isAvailable, setIsAvailable] = useState(null);
+
   const navigate = useNavigate();
 
-  // Function to check if username is available
-  const checkUsernameAvailability = async (enteredUsername) => {
-    if (!enteredUsername.trim()) return;
-    const q = query(collection(db, "users"), where("username", "==", enteredUsername));
-    const querySnapshot = await getDocs(q);
-
-    if (!querySnapshot.empty) {
-      setUsernameAvailable(false); // Username is taken
-    } else {
-      setUsernameAvailable(true); // Username is available
+  const fetchUsers = async () => {
+    setLoading(true);
+    try {
+      const querySnapshot = await getDocs(collection(db, "users"));
+      console.log(querySnapshot.docs.map((doc) => doc.data().username));
+      setUsers(querySnapshot.docs.map((doc) => doc.data().username));
+    } catch (error) {
+      console.error("Error fetching activities:", error);
     }
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  // Function to check username availability
+  const checkUsernameAvailability = (enteredUsername) => {
+    if (!enteredUsername.trim()) return;
+    setIsAvailable(!users.includes(enteredUsername));
   };
 
   // function to handle sign up
@@ -50,8 +68,7 @@ const SignUp = () => {
     }
 
     // Check username availability before proceeding
-    await checkUsernameAvailability(username);
-    if (usernameAvailable === false) {
+    if (!isAvailable) {
       setError("Username is already taken. Please choose another.");
       setIsLoading(false);
       return;
@@ -93,7 +110,7 @@ const SignUp = () => {
       setPassword("");
       setConfirmPassword("");
       setError("");
-      
+
       // Redirect to home page
       navigate("/home");
 
@@ -153,16 +170,20 @@ const SignUp = () => {
             style={{
               width: "100%",
               padding: "8px",
-              border: `1px solid ${usernameAvailable === false ? "red" : "#ccc"}`,
+              border: `1px solid ${isAvailable ? "#ccc" : "red"}`,
               borderRadius: "4px",
             }}
           />
-          {usernameAvailable === false && (
-            <p style={{ color: "red", fontSize: "12px" }}>Username is already taken</p>
-          )}
-          {usernameAvailable === true && (
-            <p style={{ color: "green", fontSize: "12px" }}>Username is available</p>
-          )}
+          {username &&
+            (isAvailable ? (
+              <p style={{ color: "green", fontSize: "12px" }}>
+                Username is available
+              </p>
+            ) : (
+              <p style={{ color: "red", fontSize: "12px" }}>
+                Username is already taken
+              </p>
+            ))}
         </div>
 
         <div style={{ marginBottom: "10px" }}>

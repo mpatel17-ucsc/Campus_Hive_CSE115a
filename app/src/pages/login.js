@@ -15,7 +15,7 @@ import {
   Alert,
 } from "@mui/material";
 import { auth, db } from "../util/firebase";
-import { doc, setDoc, getDoc } from "firebase/firestore";
+import { doc, setDoc, getDoc, updateDoc } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
 
 const Login = ({ onLoginSuccess }) => {
@@ -41,10 +41,10 @@ const Login = ({ onLoginSuccess }) => {
         password,
       );
       const user = userCredential.user;
-      await setDoc(doc(db, "users", user.uid), {
-        email: user.email,
-        lastLogin: new Date().toISOString(),
-      });
+      // await setDoc(doc(db, "users", user.uid), {
+      //   email: user.email,
+      //   lastLogin: new Date().toISOString(),
+      // });
       onLoginSuccess();
       navigate("/home");
     } catch (err) {
@@ -56,43 +56,49 @@ const Login = ({ onLoginSuccess }) => {
   };
 
   // Google authentication function
-const handleGoogleSignIn = async () => {
-  setError("");
-  setIsLoading(true);
-  const provider = new GoogleAuthProvider();
+  const handleGoogleSignIn = async () => {
+    setError("");
+    setIsLoading(true);
+    const provider = new GoogleAuthProvider();
 
-  try {
-    const result = await signInWithPopup(auth, provider);
-    const user = result.user;
+    try {
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
 
-    console.log("Google Sign-In Successful! UID:", user.uid, "Email:", user.email); // ✅ Check UID
+      console.log(
+        "Google Sign-In Successful! UID:",
+        user.uid,
+        "Email:",
+        user.email,
+      ); // ✅ Check UID
 
-    // Check if user already has a username
-    const userRef = doc(db, "users", user.uid);
-    const userSnap = await getDoc(userRef);
+      // Check if user already has a username
+      const userRef = doc(db, "users", user.uid);
+      const userSnap = await getDoc(userRef);
 
-    if (!userSnap.exists() || !userSnap.data().username) {
-      console.log("Redirecting to setup-username...");
-      navigate(`/setup-username/${user.uid}/${encodeURIComponent(user.email)}`);
-      return;
+      if (!userSnap.exists() || !userSnap.data().username) {
+        console.log("Redirecting to setup-username...");
+        navigate(
+          `/setup-username/${user.uid}/${encodeURIComponent(user.email)}`,
+        );
+        return;
+      }
+
+      await setDoc(doc(db, "users", user.uid), {
+        email: user.email,
+        lastLogin: new Date().toISOString(),
+        username: userSnap.data().username,
+      });
+
+      onLoginSuccess();
+      navigate("/home");
+    } catch (err) {
+      console.error("Google Sign-In Error:", err.message); // 🔥 Logs any errors
+      setError(err.message);
+    } finally {
+      setIsLoading(false);
     }
-
-    await setDoc(doc(db, "users", user.uid), {
-      email: user.email,
-      lastLogin: new Date().toISOString(),
-      username: userSnap.data().username,
-    });
-
-    onLoginSuccess();
-    navigate("/home");
-  } catch (err) {
-    console.error("Google Sign-In Error:", err.message); // 🔥 Logs any errors
-    setError(err.message);
-  } finally {
-    setIsLoading(false);
-  }
-};
-
+  };
 
   // Function to handle the reset password
   const handleReset = async () => {

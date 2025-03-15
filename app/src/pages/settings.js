@@ -146,14 +146,14 @@ const Settings = () => {
     }
 
     setNotiSettings((prev) => ({ ...prev, allow: newAllowState }));
-    setHasChanges(true);
+    // setHasChanges(true);
   };
 
   // Handle ZIP code text input
   const handleZipChange = (e) => {
     setZipCode(e.target.value);
     setValidZipSelected(false); // Reset valid ZIP selection
-    setHasChanges(true);
+    // setHasChanges(true);
   };
 
   // Handle ZIP code selection from Google Places API dropdown
@@ -167,7 +167,7 @@ const Settings = () => {
         if (zip) {
           setZipCode(zip);
           setValidZipSelected(true); // ZIP is now valid
-          setHasChanges(true);
+          // setHasChanges(true);
         }
       }
     }
@@ -186,16 +186,23 @@ const Settings = () => {
     try {
       await updateDoc(doc(db, "users", user.uid), updatedData);
       setFetchedNotiSettings({ allow: notiSettings.allow, zip: zipCode });
-      setHasChanges(false);
+      // setHasChanges(false);
     } catch (error) {
       console.error("Error updating notification settings:", error);
     }
   };
 
+  useEffect(() => {
+    const changes =
+      fetchedNotiSettings.allow !== notiSettings.allow ||
+      fetchedNotiSettings.zip !== zipCode;
+
+    setHasChanges(changes);
+  }, [fetchedNotiSettings, notiSettings, zipCode]);
+
   // Check if Save button should be enabled
   const isSaveDisabled =
     !hasChanges || (notiSettings.allow && !validZipSelected);
-  // (!notiSettings.allow && zipCode.trim() !== ""); // ZIP must be empty when notifications are off
 
   // -----------------------------------------------------------------------------------------
 

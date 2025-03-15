@@ -17,7 +17,6 @@ import {
   ListItem,
   ListItemIcon,
   ListItemText,
-  Switch,
   Divider,
 } from "@mui/material";
 import {
@@ -48,6 +47,7 @@ const TopBar = ({
   sortBy,
   setSortBy, // New props for sorting
   showSearch = true,
+  activities = [],
 }) => {
   const navigate = useNavigate();
 
@@ -78,7 +78,6 @@ const TopBar = ({
 
   const handleToggleNotifications = async () => {
     setNotificationsEnabled(!notificationsEnabled);
-    const user = auth.currentUser;
     await updateDoc(doc(db, "users", user.uid), {
       allowNotifications: !notificationsEnabled,
     });
@@ -229,7 +228,17 @@ const TopBar = ({
             <ListItemText primary="Settings" />
           </ListItem>
 
-          <ListItem button onClick={() => navigate("/my-activities")}>
+          <ListItem
+            button
+            onClick={() => {
+              console.log("My Activities:", activities);
+              const acts = activities.filter(
+                (activity) => activity.userID === user.uid,
+              );
+              console.log("My activities:", acts);
+              navigate("/my-activities", { state: { acts } }); // optional: pass activities to route
+            }}
+          >
             <ListItemIcon>
               <LocalActivityIcon />
             </ListItemIcon>

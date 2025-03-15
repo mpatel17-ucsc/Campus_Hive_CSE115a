@@ -27,22 +27,25 @@ const App = () => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
         setIsLoggedIn(true);
-        
+
         try {
           // Get the user's document from Firestore
           const userRef = doc(db, "users", user.uid);
           const userSnap = await getDoc(userRef);
-  
+
           if (!userSnap.exists() || !userSnap.data()?.username) {
             console.log("User needs to set up a username.");
             setRequiresUsernameSetup(true);
           } else {
-            console.log("User already has a username:", userSnap.data().username);
+            console.log(
+              "User already has a username:",
+              userSnap.data().username,
+            );
             setRequiresUsernameSetup(false);
           }
         } catch (error) {
           console.error("Error fetching user data:", error);
-          setRequiresUsernameSetup(false);
+          // setRequiresUsernameSetup(false);
         }
       } else {
         console.log("User is not logged in.");
@@ -51,40 +54,54 @@ const App = () => {
       }
       setLoading(false);
     });
-  
+
     return () => unsubscribe();
   }, []);
-  
-
 
   if (loading) {
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="100vh">
+      <Box
+        display="flex"
+        justifyContent="center"
+        alignItems="center"
+        minHeight="100vh"
+      >
         <CircularProgress />
       </Box>
     );
   }
-  
+
   return (
     <ThemeProvider theme={theme}>
       <Routes>
         {/* If user needs to set up a username, redirect to setup page */}
         {requiresUsernameSetup ? (
           <>
-            <Route path="/setup-username/:uid/:email" element={<SetupUsername />} />
-            <Route 
-              path="*" 
+            <Route
+              path="/setup-username/:uid/:email"
+              element={<SetupUsername />}
+            />
+            <Route
+              path="*"
               element={
-                auth.currentUser 
-                  ? <Navigate to={`/setup-username/${auth.currentUser.uid}/${encodeURIComponent(auth.currentUser.email)}`} replace />
-                  : <Navigate to="/login" replace />
-              } 
+                auth.currentUser ? (
+                  <Navigate
+                    to={`/setup-username/${auth.currentUser.uid}/${encodeURIComponent(auth.currentUser.email)}`}
+                    replace
+                  />
+                ) : (
+                  <Navigate to="/login" replace />
+                )
+              }
             />
           </>
         ) : isLoggedIn ? (
           <>
             <Route path="/" element={<Navigate to="/home" replace />} />
-            <Route path="/home" element={<Home onLogout={() => setIsLoggedIn(false)} />} />
+            <Route
+              path="/home"
+              element={<Home onLogout={() => setIsLoggedIn(false)} />}
+            />
             <Route path="/create-activity" element={<CreateActivity />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/my-activities" element={<MyActivities />} />
@@ -93,14 +110,18 @@ const App = () => {
         ) : (
           <>
             <Route path="/" element={<Navigate to="/login" replace />} />
-            <Route path="/login" element={<Login onLoginSuccess={() => setIsLoggedIn(true)} />} />
+            <Route
+              path="/login"
+              element={<Login onLoginSuccess={() => setIsLoggedIn(true)} />}
+            />
             <Route path="/signup" element={<SignUp />} />
           </>
         )}
       </Routes>
     </ThemeProvider>
   );
-}  
+};
+
 /*
   if (!isLoggedIn) {
     return (

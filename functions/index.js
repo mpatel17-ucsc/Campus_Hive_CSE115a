@@ -83,7 +83,7 @@ async function sendEmails(activityZip, activityTitle) {
           from: "rivaidun@ucsc.edu",
           to: userData.email,
           subject: "New activity alert in your area!",
-          text: `Hey there! A new activity was just posted: ${activityTitle} in the area (${activityZip}). Check out Campus Hive for more details!`,
+          text: `Hey there! A new activity was just posted, ${activityTitle}, in the area (${activityZip}). Check out Campus Hive for more details!`,
         });
         console.log(`Email sent successfully to ${userData.email}`);
       } catch (error) {
@@ -141,6 +141,7 @@ async function sendEmails(activityZip, activityTitle) {
 
 // Triggered when a new activity is created
 // exports.sendEmailOnActCreate = onDocumentUpdated(
+
 exports.sendEmailOnActCreate = onDocumentCreated(
   "activities/{activityId}",
   async (event) => {
@@ -166,7 +167,7 @@ exports.sendEmailOnActCreate = onDocumentCreated(
       const zip = activityData.location.zip;
       console.log(`New activity created in ZIP: ${zip}`);
 
-      await sendEmails(zip, activityData.title);
+      await sendEmails(zip, activityData.placeName);
       return null;
     } catch (error) {
       console.error("Error in function execution:", error);
