@@ -4,7 +4,7 @@ import { ThemeProvider, createTheme } from "@mui/material/styles";
 import { CircularProgress, Box } from "@mui/material";
 
 import Login from "./pages/login";
-import SetupUsername from "./pages/setupUsername";
+import SetupUsername from "./pages/SetupUsername";
 import SignUp from "./pages/signUp";
 import CreateActivity from "./pages/createActivity";
 import MyActivities from "./pages/myActivities";

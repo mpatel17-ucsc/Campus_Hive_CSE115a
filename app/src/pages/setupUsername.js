@@ -61,7 +61,8 @@ const SetupUsername = () => {
       await setDoc(doc(db, "users", uid), { username, email }, { merge: true });
       console.log("Username set successfully! Redirecting...");
       setTimeout(() => {
-        window.location.href = "/home"; // Hard redirect
+        // Hard redirect
+        window.location.href = "/home";
       }, 500); // Redirect user to home after setting username
     } catch (err) {
       setError("An error occurred. Please try again.");
