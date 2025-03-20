@@ -61,7 +61,8 @@ const ActivityDetail = () => {
       const activitySnap = await getDoc(activityRef);
       if (activitySnap.exists()) {
         const data = activitySnap.data();
-        const userId = data.userID; // Replace with your logic to get the current user's ID
+        // Replace with your logic to get the current user's ID
+        const userId = data.userID;
         let updateData = {};
 
         if (type === "upvotes") {
