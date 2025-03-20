@@ -218,12 +218,7 @@ const TopBar = ({
           <ListItem
             button
             onClick={() => {
-              console.log("My Activities:", activities);
-              const acts = activities.filter(
-                (activity) => activity.userID === user.uid,
-              );
-              console.log("My activities:", acts);
-              navigate("/my-activities", { state: { acts } }); // optional: pass activities to route
+              navigate("/my-activities");
             }}
           >
             <ListItemIcon>

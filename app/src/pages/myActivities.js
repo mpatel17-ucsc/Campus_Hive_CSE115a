@@ -23,9 +23,6 @@ const MyActivities = () => {
   const [user, setUser] = useState(null);
   const [displayName, setDisplayName] = useState("");
 
-  const location = useLocation();
-  const { activities } = location.state || {};
-  // console.log("received activities", activities);
   // Set current user from Firebase Auth and initialize displayName
   useEffect(() => {
     if (auth.currentUser) {
@@ -34,39 +31,39 @@ const MyActivities = () => {
     }
   }, []);
 
-  // const [activities, setActivities] = useState([]);
+  const [activities, setActivities] = useState([]);
 
-  // const fetchActivities = useCallback(async () => {
-  //   try {
-  //     const activitiesQuery = query(
-  //       collection(db, "activities"),
-  //       where("userID", "==", userID),
-  //     );
-  //     const querySnapshot = await getDocs(activitiesQuery);
-  //     const activitiesList = querySnapshot.docs.map((doc) => ({
-  //       id: doc.id,
-  //       ...doc.data(),
-  //     }));
-  //     setActivities(activitiesList);
-  //   } catch (error) {
-  //     console.error("Error fetching activities:", error);
-  //   }
-  // }, [userID]);
-  //
-  // useEffect(() => {
-  //   fetchActivities();
-  // }, [fetchActivities]);
+  const fetchActivities = useCallback(async () => {
+    try {
+      const activitiesQuery = query(
+        collection(db, "activities"),
+        where("userID", "==", userID),
+      );
+      const querySnapshot = await getDocs(activitiesQuery);
+      const activitiesList = querySnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      setActivities(activitiesList);
+    } catch (error) {
+      console.error("Error fetching activities:", error);
+    }
+  }, [userID]);
+
+  useEffect(() => {
+    fetchActivities();
+  }, [fetchActivities]);
 
   const handleDelete = (id) => async () => {
     console.log("partent", id);
     try {
       await deleteDoc(doc(db, "activities", id));
-      // setActivities((prev) => prev.filter((activity) => activity.id !== id));
-      activities.filter((activity) => activity.id !== id);
+      setActivities((prev) => prev.filter((activity) => activity.id !== id));
     } catch (error) {
       console.error("Error deleting activity:", error);
     }
   };
+
   if (!activities || !activities.length) {
     console.log("No activities");
     return (
