@@ -5,39 +5,46 @@ import {
   Marker,
   Autocomplete,
 } from "@react-google-maps/api";
-// load API key
-// declare constants
+
+// Import Google Maps API key from environment variables
 const GOOGLE_MAPS_API_KEY = process.env.REACT_APP_maps;
 
+// Define the styling for the map container
 const mapContainerStyle = {
-  width: "100%",
-  height: "400px",
+  width: "100%", // Takes full width of the container
+  height: "400px", // Fixed height for visibility
 };
 
 const defaultCenter = { lat: 37.7749, lng: -122.4194 }; // Default to San Francisco
 
 const LocationPicker = ({ onLocationSelect }) => {
-  // State variables defined here
+  // State to keep track of the Google Map instance
   const [map, setMap] = useState(null);
+  // State to store the selected marker position
   const [markerPosition, setMarkerPosition] = useState(defaultCenter);
+  // Reference for Google Places Autocomplete
   const autocompleteRef = useRef(null);
-  // Set map when loaded
+
+  // Callback function that sets the Google Map instance when it loads
   const onLoad = (mapInstance) => {
     setMap(mapInstance);
   };
 
+  // Monitors when the map is set and logs a message for debugging
   useEffect(() => {
     if (map) {
       console.log("Map has been set:", map);
     }
   }, [map]);
 
-  // When place has changed
+  // Triggered when a user selects a place from the autocomplete suggestions.
+  // Extracts the latitude, longitude, city, and state of the selected place.
   const onPlaceChanged = () => {
     if (autocompleteRef.current) {
+      // Get place details from the Autocomplete instance
       const place = autocompleteRef.current.getPlace();
       if (place && place.geometry) {
-        // Get lat/lng
+        // Extract latitude and longitude from the selected place
         const coords = {
           lat: place.geometry.location.lat(),
           lng: place.geometry.location.lng(),
@@ -46,24 +53,26 @@ const LocationPicker = ({ onLocationSelect }) => {
         // Extract City & State from Place API
         let city = "";
         let state = "";
-
+        
+        // Extract ZIP code if available
         const zip = place.address_components.find((comp) =>
           comp.types.includes("postal_code"),
         )?.short_name;
-
+        
+        // Loop through address components to find city and state
         for (const component of place.address_components) {
           if (component.types.includes("locality")) {
-            city = component.long_name;
+            city = component.long_name; // Assign the city
           }
           if (component.types.includes("administrative_area_level_1")) {
-            state = component.long_name;
+            state = component.long_name; // Assign the state
           }
         }
-        console.log("City:", city, "State:", state);
 
+        // Update the marker position on the map
         setMarkerPosition(coords);
 
-        // Pass data to parent
+        // Pass the selected location data to the parent component
         if (city && state && coords && zip) {
           onLocationSelect({ city, state, ...coords, zip });
         }
@@ -73,11 +82,12 @@ const LocationPicker = ({ onLocationSelect }) => {
 
   return (
     <LoadScript googleMapsApiKey={GOOGLE_MAPS_API_KEY} libraries={["places"]}>
+      {/* Container to align the search box and map vertically */}
       <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-        {/* Search Box */}
+        {/* Search Box: Uses Google Places Autocomplete to help users find locations */}
         <Autocomplete
-          onLoad={(autocomplete) => (autocompleteRef.current = autocomplete)}
-          onPlaceChanged={onPlaceChanged}
+          onLoad={(autocomplete) => (autocompleteRef.current = autocomplete)} // Store the autocomplete instance in a ref
+          onPlaceChanged={onPlaceChanged} // Triggered when a user selects a location
         >
           <input
             type="text"
@@ -92,7 +102,7 @@ const LocationPicker = ({ onLocationSelect }) => {
           />
         </Autocomplete>
 
-        {/* Google Map */}
+        {/* Google Map Component: Displays the selected location */}
         <GoogleMap
           mapContainerStyle={mapContainerStyle}
           zoom={12}

@@ -27,32 +27,34 @@ import {
 import { Delete, Edit } from "@mui/icons-material";
 
 const CommentsSection = ({ activityId }) => {
-  const [comments, setComments] = useState([]);
-  const [commentInput, setCommentInput] = useState("");
-  const [editCommentId, setEditCommentId] = useState(null);
-  const [editCommentText, setEditCommentText] = useState("");
-  const [users, setUsers] = useState([]);
-  const [mentionMenuAnchor, setMentionMenuAnchor] = useState(null);
-  // const [mentionQuery, setMentionQuery] = useState("");
-  const [mentionResults, setMentionResults] = useState([]);
-  const commentsEndRef = useRef(null);
+  const [comments, setComments] = useState([]); // Stores all comments
+  const [commentInput, setCommentInput] = useState(""); // Input for new comment
+  const [editCommentId, setEditCommentId] = useState(null); // Tracks the comment being edited
+  const [editCommentText, setEditCommentText] = useState(""); // Stores edited comment text
+  const [users, setUsers] = useState([]); // Stores all users for mention feature
+  const [mentionMenuAnchor, setMentionMenuAnchor] = useState(null); // Tracks mention dropdown position
+  const [mentionResults, setMentionResults] = useState([]); // Stores mention search results
+  const commentsEndRef = useRef(null); // Reference for scrolling to the latest comment
 
+  // Scrolls to the latest comment when new comments are added
   const scrollToBottom = () => {
     commentsEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
+  // Fetch comments in real-time from Firestore
   const fetchComments = useCallback(async () => {
     const commentsRef = collection(db, "activities", activityId, "comments");
     const q = query(commentsRef, orderBy("createdAt", "asc"));
 
+    // Listen for real-time updates
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const commentsList = snapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
       }));
-
       setComments(commentsList);
 
+      // Extract unique usernames from comments
       const uniqueUsers = Array.from(
         new Set(commentsList.map((c) => c.userName || c.email)),
       );
@@ -68,6 +70,7 @@ const CommentsSection = ({ activityId }) => {
     fetchComments();
   }, [activityId, fetchComments]);
 
+  // Fetch all users from Firestore for mention suggestions
   useEffect(() => {
     const fetchUsers = async () => {
       try {
@@ -90,6 +93,7 @@ const CommentsSection = ({ activityId }) => {
     fetchUsers();
   }, []); // empty array to ennsure one run
 
+  // Handles input change and checks for mentions
   const handleInputChange = (e) => {
     // Get the current input value
     const value = e.target.value;
@@ -128,6 +132,7 @@ const CommentsSection = ({ activityId }) => {
     }
   };
 
+  // Handles mention selection
   const handleMentionSelect = (username) => {
     // If username is undefined or null, exit early to avoid errors
     if (!username) return;
@@ -142,6 +147,7 @@ const CommentsSection = ({ activityId }) => {
     setMentionMenuAnchor(null);
   };
 
+  // Adds a new comment to Firestore
   const handleAddComment = async () => {
     if (!commentInput.trim()) return;
     try {
@@ -166,6 +172,7 @@ const CommentsSection = ({ activityId }) => {
     }
   };
 
+  // Deletes a comment
   const handleDeleteComment = async (commentId) => {
     try {
       // Get a reference to the specific comment document in Firestore and fetch updated comments after deletion
@@ -176,6 +183,7 @@ const CommentsSection = ({ activityId }) => {
     }
   };
 
+  // Edits a comment
   const handleEditComment = async (commentId, newText) => {
     try {
       // Get a reference to the specific comment document in Firestore
@@ -201,11 +209,12 @@ const CommentsSection = ({ activityId }) => {
 
   return (
     <Box sx={{ mt: 2 }}>
+      {/* Comments List */}
       <Typography variant="subtitle1" gutterBottom>
         Comments
       </Typography>
 
-      {/* Scrollable comments container */}
+      {/* Edit & Delete Buttons (Only for Comment Owner) */}
       <Box
         sx={{
           minHeight: 150, // Ensures the box doesn't shrink too much
