@@ -19,42 +19,47 @@ import {
   Rating,
 } from "@mui/material";
 
+// Constants for image upload constraints
 const MAX_IMAGES = 5;
 const MAX_IMAGE_SIZE_MB = 1;
 const MAX_TOTAL_IMAGES = 30;
 const ALLOWED_FORMATS = ["image/jpeg", "image/png", "image/jpg"];
 
 const CreateActivity = () => {
+  // User Authentication & Navigation
   const user = auth.currentUser;
   const navigate = useNavigate();
 
-  const [placeName, setPlaceName] = useState("");
-  const [rating, setRating] = useState(0);
-  const [description, setDescription] = useState("");
-  const [tags, setTags] = useState([]);
-  const [tagInput, setTagInput] = useState("");
-  const [location, setLocation] = useState({});
-  // const [selectedUniversity, setSelectedUniversity] = useState("");
+  // State Variables for Form Inputs
+  const [placeName, setPlaceName] = useState(""); // Name of the place
+  const [rating, setRating] = useState(0); // User rating
+  const [description, setDescription] = useState(""); // Activity description
+  const [tags, setTags] = useState([]); // Array of tags
+  const [tagInput, setTagInput] = useState(""); // Input field for adding tags
+  const [location, setLocation] = useState({}); // Location object
 
-  const [imageFiles, setImageFiles] = useState([]);
-  const [imagePreviews, setImagePreviews] = useState([]);
+  // Image State Variables
+  const [imageFiles, setImageFiles] = useState([]); // Uploaded images (file objects)
+  const [imagePreviews, setImagePreviews] = useState([]); // Image preview URLs
 
+  // Handle Location Selection
   const handleLocationSelect = (location) => {
     console.log("Selected Location:", location);
     setLocation(location);
   };
 
+  // Add & Remove Tags
   const handleAddTag = () => {
     if (tagInput.trim() && !tags.includes(tagInput.trim())) {
       setTags([...tags, tagInput.trim()]);
       setTagInput("");
     }
   };
-
   const handleRemoveTag = (tagToRemove) => {
     setTags(tags.filter((tag) => tag !== tagToRemove));
   };
 
+  // File Input & Drag-and-Drop Handling
   const fileInputRef = useRef(null);
   const handleButtonClick = () => {
     if (fileInputRef.current) {
@@ -62,7 +67,7 @@ const CreateActivity = () => {
     }
   };
 
-  // Drag-and-Drop logic
+  // Drag-and-Drop Logic for Image Uploads
   const { getRootProps, getInputProps, isDragActive, isDragReject } =
     useDropzone({
       accept: ALLOWED_FORMATS.join(","), // Accept only images
@@ -73,12 +78,11 @@ const CreateActivity = () => {
           alert("Some files were rejected. Please upload valid images only.");
           return;
         }
-
+        // Enforce max image limit
         if (imageFiles.length + acceptedFiles.length > MAX_IMAGES) {
           alert(`You can only upload up to ${MAX_IMAGES} images.`);
           return;
         }
-
         // Add new images to previews
         setImageFiles((prev) => [...prev, ...acceptedFiles]);
         setImagePreviews((prev) => [
@@ -87,7 +91,8 @@ const CreateActivity = () => {
         ]);
       },
     });
-
+  
+  // Handle Image Selection via Input
   const handleImageChange = (e) => {
     const files = Array.from(e.target.files);
 
@@ -103,11 +108,13 @@ const CreateActivity = () => {
     ]);
   };
 
+  // Remove Selected Image
   const removeImage = (index) => {
     setImageFiles((prev) => prev.filter((_, i) => i !== index));
     setImagePreviews((prev) => prev.filter((_, i) => i !== index));
   };
 
+  // Fetch User's Total Image Count from Firebase Storage
   const getUserImageCount = async (userID) => {
     try {
       const userFolderRef = ref(storage, `images/${userID}/`);
@@ -120,6 +127,7 @@ const CreateActivity = () => {
     }
   };
 
+  // Handle Form Submission
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!location.state || !location.city) {
@@ -143,6 +151,7 @@ const CreateActivity = () => {
         return await getDownloadURL(storageRef);
       };
 
+      // Upload User-Selected Images
       if (imageFiles.length > 0) {
         console.log(imageFiles);
         for (const file of imageFiles) {
@@ -152,29 +161,30 @@ const CreateActivity = () => {
           downloadURLs.push(url);
         }
       } else {
+        // Generate Static Google Maps Image if No Images Uploaded
         const coords = `${location.lat},${location.lng}`;
         const staticMapUrl = `https://maps.googleapis.com/maps/api/staticmap?center=${coords}&zoom=12&size=600x300&maptype=roadmap
     &markers=color:red%7Clabel:S%7C${coords}
     &key=${process.env.REACT_APP_maps}`;
-
+        // Fetch & Convert Static Map to File
         const response = await fetch(staticMapUrl);
         const blob = await response.blob(); // Convert image to a Blob
         const file = new File([blob], `${Date.now()}-${coords}static-map.png`, {
           type: "image/png",
         });
-
+        // Upload Static Map Image
         const path = `images/${userID}/${file.name}`;
         const url = await uploadFile(file, path);
         downloadURLs.push(url);
       }
 
+      // Save Activity to Firestore
       await setDoc(doc(db, "activities", new Date().toISOString()), {
         placeName,
         location,
         description,
         rating,
         tags,
-        // selectedUniversity,
         createdAt: serverTimestamp(),
         userID: user.uid,
         userName: user.displayName,
@@ -194,6 +204,7 @@ const CreateActivity = () => {
 
   return (
     <Container maxWidth="sm">
+      {/* Main Card for Creating an Activity */}
       <Paper
         elevation={4}
         sx={{
@@ -204,12 +215,15 @@ const CreateActivity = () => {
           backgroundColor: "#f9f9f9",
         }}
       >
+
+        {/* Title of the Form */}
         <Typography variant="h5" fontWeight="bold" gutterBottom>
           Create an Activity Post
         </Typography>
 
+        {/* Form Container */}
         <Box component="form" onSubmit={handleSubmit} sx={{ mt: 2 }}>
-          {/* <Box component="form" sx={{ mt: 2 }}> */}
+          {/* Activity Title Input */}
           <TextField
             label="Title"
             variant="outlined"
@@ -235,6 +249,7 @@ const CreateActivity = () => {
             sx={{ mt: 3, mb: 3 }}
           />
 
+          {/* Rating Input */}
           <Box sx={{ display: "flex", alignItems: "center", mb: 3 }}>
             <Typography sx={{ mr: 2 }}>Rating:</Typography>
             <Rating
@@ -244,6 +259,7 @@ const CreateActivity = () => {
               precision={0.5} // Allows 0.5 star increments
             />
           </Box>
+
           {/* Tag Input */}
           <TextField
             label="Add Tags"
@@ -259,6 +275,8 @@ const CreateActivity = () => {
             }}
             sx={{ mb: 2 }}
           />
+
+          {/* Add Tag Button */}
           <Button
             variant="contained"
             color="primary"
@@ -268,6 +286,7 @@ const CreateActivity = () => {
             Add Tag
           </Button>
 
+          {/* Displaying Added Tags */}
           <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mb: 2 }}>
             {tags.map((tag) => (
               <Chip
@@ -277,16 +296,9 @@ const CreateActivity = () => {
                 color="primary"
               />
             ))}
-            {/* <TextField */}
-            {/*   label="Rating (0-5)" */}
-            {/*   type="number" */}
-            {/*   inputProps={{ step: 0.5, min: 0, max: 5 }} */}
-            {/*   value={rating} */}
-            {/*   onChange={(e) => setRating(parseFloat(e.target.value))} */}
-            {/*   required */}
-            {/* />{" "} */}
           </Box>
-
+          
+          {/* Image Upload Section */}
           <Box>
             {/* Hidden File Input */}
             <input
@@ -354,6 +366,8 @@ const CreateActivity = () => {
                           borderRadius: 8,
                         }}
                       />
+
+                      {/* Remove Image Button */}
                       <Button
                         variant="contained"
                         color="error"
@@ -376,8 +390,10 @@ const CreateActivity = () => {
               </Box>
             )}
           </Box>
-
+          
+          {/* Submit & Cancel Buttons */}
           <Box sx={{ display: "flex", justifyContent: "space-between", mt: 3 }}>
+            {/* Submit */}
             <Button
               type="submit"
               variant="contained"
@@ -387,6 +403,7 @@ const CreateActivity = () => {
               Submit
             </Button>
 
+            {/* Cancel */}
             <Button
               variant="outlined"
               color="secondary"
@@ -395,16 +412,6 @@ const CreateActivity = () => {
             >
               Cancel
             </Button>
-
-            {/* <Button */}
-            {/*   variant="outlined" */}
-            {/*   color="secondary" */}
-            {/*   sx={{ width: "48%" }} */}
-            {/*   onClick={handleSubmit} */}
-            {/*   // onClick={() => getUserImageCount(user.uid)} */}
-            {/* > */}
-            {/*   test uplaad */}
-            {/* </Button> */}
           </Box>
         </Box>
       </Paper>

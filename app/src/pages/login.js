@@ -25,7 +25,6 @@ const Login = ({ onLoginSuccess }) => {
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  //eslint-disable-next-line
   const [isResetLoading, setIsResetLoading] = useState(false); // Separate loading state for password reset
   const navigate = useNavigate();
 
@@ -41,10 +40,6 @@ const Login = ({ onLoginSuccess }) => {
         password,
       );
       const user = userCredential.user;
-      // await setDoc(doc(db, "users", user.uid), {
-      //   email: user.email,
-      //   lastLogin: new Date().toISOString(),
-      // });
       onLoginSuccess();
       navigate("/home");
     } catch (err) {
@@ -70,7 +65,7 @@ const Login = ({ onLoginSuccess }) => {
         user.uid,
         "Email:",
         user.email,
-      ); // ✅ Check UID
+      ); // Check UID
 
       // Check if user already has a username
       const userRef = doc(db, "users", user.uid);
@@ -93,7 +88,7 @@ const Login = ({ onLoginSuccess }) => {
       onLoginSuccess();
       navigate("/home");
     } catch (err) {
-      console.error("Google Sign-In Error:", err.message); // 🔥 Logs any errors
+      console.error("Google Sign-In Error:", err.message); // Logs any errors
       setError(err.message);
     } finally {
       setIsLoading(false);
