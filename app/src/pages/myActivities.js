@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { auth, storage, db } from "../util/firebase"; // Ensure storage is exported in your firebase util
-import { Grid, Button } from "@mui/material";
+import { auth, db } from "../util/firebase"; // Ensure storage is exported in your firebase util
+import { Button } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import TopBar from "../components/TopBar";
 import ActivityCard from "../components/ActivityCard";
@@ -15,21 +15,10 @@ import {
   doc,
 } from "firebase/firestore";
 
-import { useLocation } from "react-router-dom";
 const MyActivities = () => {
   // Function to fetch activities from Firestore
   const userID = auth.currentUser.uid;
   const navigate = useNavigate();
-  const [user, setUser] = useState(null);
-  const [displayName, setDisplayName] = useState("");
-
-  // Set current user from Firebase Auth and initialize displayName
-  useEffect(() => {
-    if (auth.currentUser) {
-      setUser(auth.currentUser);
-      setDisplayName(auth.currentUser.displayName || "");
-    }
-  }, []);
 
   const [activities, setActivities] = useState([]);
 
