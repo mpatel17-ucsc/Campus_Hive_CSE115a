@@ -76,7 +76,6 @@ const ActivityCard = ({ activity, owner = false, onDelete }) => {
 
   // state to store the current number of downvotes for an activity
   const [downvotes, setDownvotes] = useState(activity.downvotes || 0);
-
   useEffect(() => {
     const fetchActivityData = async () => {
       const activityRef = doc(db, "activities", activity.id);
@@ -233,7 +232,18 @@ const ActivityCard = ({ activity, owner = false, onDelete }) => {
     // Grid Layout and Card Container
     <Grid item xs={12} sm={6} md={4} lg={3} key={activity.id}>
       <Card
-        sx={{ borderRadius: "12px", boxShadow: 3, cursor: "pointer" }}
+        sx={{
+          borderRadius: "12px",
+          boxShadow: 3,
+          cursor: "pointer",
+          height: 450, // Set a fixed height for uniformity
+          overflow: "hidden",
+          position: "relative",
+          transition: "all 0.3s ease-in-out",
+          "&:hover .scrollable-content": {
+            overflowY: "auto", // Enable scrolling when hovered
+          },
+        }}
         onClick={handleCardClick}
       >
         {/* Remove Button (Only if Owner) */}
@@ -360,7 +370,18 @@ const ActivityCard = ({ activity, owner = false, onDelete }) => {
         {/* Activity Information */}
 
         {/* Display the name of the activity location */}
-        <CardContent>
+        <CardContent
+          className="scrollable-content"
+          sx={{
+            maxHeight: "200px", // Set a max height for uniformity
+            overflowY: "hidden", // Prevent content from spilling over
+            paddingBottom: "16px",
+            transition: "max-height 0.3s ease-in-out",
+            "&:hover": {
+              overflowY: "auto", // Enable scrolling on hover
+            },
+          }}
+        >
           <Typography variant="h6" fontWeight="bold">
             {activity.placeName}
           </Typography>
@@ -388,13 +409,23 @@ const ActivityCard = ({ activity, owner = false, onDelete }) => {
           )}
 
           {/* Display activity description and user-submitted rating out of 5 */}
-          <Typography variant="body1" sx={{ mt: 1 }}>
-            {activity.description}
-          </Typography>
+          <Box
+            sx={{
+              maxHeight: "80px", // Limit height
+              overflow: "hidden", // Prevent text overflow
+              textOverflow: "ellipsis",
+              display: "-webkit-box",
+              WebkitLineClamp: 3, // Show max 3 lines, then truncate
+              WebkitBoxOrient: "vertical",
+            }}
+          >
+            <Typography variant="body1">
+              {activity.description}
+            </Typography>
+          </Box>
           <Typography variant="subtitle2" color="primary" sx={{ mt: 1 }}>
             ⭐ {activity.rating} / 5
           </Typography>
-
           {/* Convert Firebase timstamp to readable data for the user */}
           <Typography variant="caption" color="textSecondary">
             {new Date(activity.createdAt?.seconds * 1000).toLocaleDateString()}
