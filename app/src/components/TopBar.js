@@ -80,7 +80,11 @@ const TopBar = ({
 
   return (
     <>
-      <AppBar position="fixed" color="default" elevation={1}>
+      <AppBar position="fixed" color="default" elevation={1}
+        sx={{
+          paddingTop: "10px",
+        }}
+      >
         <Toolbar
           sx={{
             display: "flex",
@@ -112,7 +116,7 @@ const TopBar = ({
                 }}
               />
               {/* Tag Filter Dropdown */}
-              <FormControl sx={{ minWidth: 200, height: 40 }}>
+              <FormControl sx={{ minWidth: 200, height: 50 }}>
                 <InputLabel sx={{ fontSize: "0.85rem", top: -6 }}>
                   Filter by Tags
                 </InputLabel>
