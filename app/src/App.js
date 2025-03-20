@@ -4,13 +4,13 @@ import { ThemeProvider, createTheme } from "@mui/material/styles";
 import { CircularProgress, Box } from "@mui/material";
 
 import Login from "./pages/login";
-import SetupUsername from "./pages/SetupUsername";
+import SetupUsername from "./pages/setupUsername";
 import SignUp from "./pages/signUp";
 import CreateActivity from "./pages/createActivity";
 import MyActivities from "./pages/myActivities";
 import Home from "./pages/home";
 import Settings from "./pages/settings";
-import ActivityDetail from "./pages/ActivityDetail";
+import ActivityDetail from "./pages/activityDetail";
 
 import { auth, db } from "./util/firebase";
 import { onAuthStateChanged } from "firebase/auth";

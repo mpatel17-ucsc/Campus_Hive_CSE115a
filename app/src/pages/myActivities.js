@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { auth, storage, db } from "../util/firebase"; // Ensure storage is exported in your firebase util
-import { Grid, Button } from "@mui/material";
+import { auth, db } from "../util/firebase"; // Ensure storage is exported in your firebase util
+import { Button } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import TopBar from "../components/TopBar";
 import ActivityCard from "../components/ActivityCard";
@@ -15,34 +15,44 @@ import {
   doc,
 } from "firebase/firestore";
 
-import { useLocation } from "react-router-dom";
 const MyActivities = () => {
   // Function to fetch activities from Firestore
   const userID = auth.currentUser.uid;
   const navigate = useNavigate();
-  const [user, setUser] = useState(null);
-  const [displayName, setDisplayName] = useState("");
 
-  const location = useLocation();
-  const { activities } = location.state || {};
-  // Set current user from Firebase Auth and initialize displayName
-  useEffect(() => {
-    if (auth.currentUser) {
-      setUser(auth.currentUser);
-      setDisplayName(auth.currentUser.displayName || "");
+  const [activities, setActivities] = useState([]);
+
+  const fetchActivities = useCallback(async () => {
+    try {
+      const activitiesQuery = query(
+        collection(db, "activities"),
+        where("userID", "==", userID),
+      );
+      const querySnapshot = await getDocs(activitiesQuery);
+      const activitiesList = querySnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      setActivities(activitiesList);
+    } catch (error) {
+      console.error("Error fetching activities:", error);
     }
-  }, []);
+  }, [userID]);
+
+  useEffect(() => {
+    fetchActivities();
+  }, [fetchActivities]);
 
   const handleDelete = (id) => async () => {
     console.log("partent", id);
     try {
       await deleteDoc(doc(db, "activities", id));
-      // setActivities((prev) => prev.filter((activity) => activity.id !== id));
-      activities.filter((activity) => activity.id !== id);
+      setActivities((prev) => prev.filter((activity) => activity.id !== id));
     } catch (error) {
       console.error("Error deleting activity:", error);
     }
   };
+
   if (!activities || !activities.length) {
     console.log("No activities");
     return (

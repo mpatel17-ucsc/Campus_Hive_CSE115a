@@ -11,7 +11,7 @@ import {
   IconButton,
   Chip,
 } from "@mui/material";
-import { ThumbUp, ThumbDown, Room, ArrowBack } from "@mui/icons-material";
+import { ThumbUp, ThumbDown, Room, ArrowBack , ArrowForward, ArrowBackIos} from "@mui/icons-material";
 import { db } from "../util/firebase";
 import {
   doc,
@@ -67,7 +67,8 @@ const ActivityDetail = () => {
       const activitySnap = await getDoc(activityRef);
       if (activitySnap.exists()) {
         const data = activitySnap.data();
-        const userId = data.userID; // Replace with your logic to get the current user's ID
+        // Replace with your logic to get the current user's ID
+        const userId = data.userID;
         let updateData = {};
         
         // Handling UPVOTE
@@ -128,6 +129,16 @@ const ActivityDetail = () => {
     } catch (error) {
       console.error("Error updating votes:", error);
     }
+  };
+
+  const images = activity.imageUrls || ["/placeholder.jpg"];
+
+  const handleNextImage = () => {
+    setCurrentImageIndex((prevIndex) => (prevIndex + 1) % images.length);
+  };
+
+  const handlePrevImage = () => {
+    setCurrentImageIndex((prevIndex) => (prevIndex - 1 + images.length) % images.length);
   };
 
   return (
