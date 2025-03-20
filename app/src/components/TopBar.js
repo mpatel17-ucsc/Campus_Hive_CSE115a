@@ -35,51 +35,59 @@ import { onAuthStateChanged } from "firebase/auth";
 
 const TopBar = ({
   searchTerm = "",
-  setSearchTerm = () => {},
-  tags = [],
-  selectedTags = [],
-  setSelectedTags = () => {},
-  sortBy,
-  setSortBy, // New props for sorting
-  showSearch = true,
-  activities = [],
+  setSearchTerm = () => {}, // Function to update search input
+  tags = [], // List of available tags for filtering
+  selectedTags = [], // Currently selected tags
+  setSelectedTags = () => {}, // Function to update selected tags
+  sortBy, // Sorting method (e.g., highest rated, most popular)
+  setSortBy, // Function to update sorting preference
+  showSearch = true, // Boolean flag to show/hide the search bar
+  activities = [], // List of activities (used for filtering "My Activities")
 }) => {
-  const navigate = useNavigate();
+  const navigate = useNavigate(); // Hook to programmatically navigate between pages
+  const [sidebarOpen, setSidebarOpen] = useState(false); // State to manage sidebar open/close
+  const [user, setUser] = useState(auth.currentUser); // State to store the currently logged-in user
 
+  // Function to handle user logout
   const handleLogout = () => {
-    signOut(auth);
-    navigate("/login");
+    signOut(auth); // Firebase function to sign out the user
+    navigate("/login"); // Redirect to the login page after logout
   };
+
+  // Function to handle sorting selection
   const handleSortChange = (event) => {
-    setSortBy(event.target.value);
+    setSortBy(event.target.value); // Update sorting state
   };
 
+  // Function to handle tag selection
   const handleTagChange = (event) => {
-    setSelectedTags(event.target.value);
+    setSelectedTags(event.target.value); // Update selected tags state
   };
 
+  // Function to remove a selected tag from the filter
   const handleTagDelete = (tagToDelete) => {
     setSelectedTags((prevTags) =>
-      prevTags.filter((tag) => tag !== tagToDelete),
+      prevTags.filter((tag) => tag !== tagToDelete), // Remove tag from list
     );
   };
-  const [sidebarOpen, setSidebarOpen] = useState(false);
 
+  // Function to toggle sidebar state (open/close)
   const toggleSidebar = (open) => () => {
     setSidebarOpen(open);
   };
 
-  const [user, setUser] = useState(auth.currentUser);
-
+  // Effect to listen for authentication state changes (e.g., login/logout)
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
+      setUser(currentUser); // Update user state when authentication changes
     });
-    return unsubscribe;
-  }, []);
+
+    return unsubscribe; // Cleanup function to unsubscribe from listener
+  }, []); // Runs only once when the component mounts
 
   return (
     <>
+      {/* Navigation Bar at the top */}
       <AppBar position="fixed" color="default" elevation={1}
         sx={{
           paddingTop: "10px",
@@ -93,13 +101,15 @@ const TopBar = ({
             minHeight: 72,
           }}
         >
+          {/* App Title */}
           <Typography variant="h6" sx={{ fontWeight: "bold" }}>
             Campus Hive
           </Typography>
-          {/* Search Bar */}
 
+          {/* Search and Filtering Controls */}
           {showSearch && (
             <>
+              {/* Search Bar for finding activities */}
               <TextField
                 variant="outlined"
                 placeholder="Search activities..."
@@ -115,8 +125,9 @@ const TopBar = ({
                   ),
                 }}
               />
-              {/* Tag Filter Dropdown */}
-              <FormControl sx={{ minWidth: 200, height: 50 }}>
+
+              {/* Dropdown to Filter Activities by Tags */}
+              <FormControl sx={{ minWidth: 200, height: 40 }}>
                 <InputLabel sx={{ fontSize: "0.85rem", top: -6 }}>
                   Filter by Tags
                 </InputLabel>
@@ -161,6 +172,8 @@ const TopBar = ({
                   ))}
                 </Select>
               </FormControl>
+
+              {/* Dropdown to Sort Activities */}
               <FormControl sx={{ minWidth: 200, height: 40 }}>
                 <InputLabel sx={{ fontSize: "0.85rem", top: -6 }}>
                   Sort By
@@ -178,7 +191,10 @@ const TopBar = ({
             </>
           )}
 
+          {/* Icons for Navigation and User Actions */}
           <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+            
+            {/* Create Activity Button */}
             <IconButton
               color="inherit"
               onClick={() => navigate("/create-activity")}
@@ -186,6 +202,8 @@ const TopBar = ({
             >
               <AddIcon />
             </IconButton>
+
+            {/* Home Button */}
             <IconButton
               color="inherit"
               onClick={() => navigate("/home")}
@@ -193,9 +211,13 @@ const TopBar = ({
             >
               <HomeIcon />
             </IconButton>
+
+            {/* Logout Button */}
             <IconButton color="inherit" onClick={handleLogout} title="Logout">
               <LogoutIcon />
             </IconButton>
+
+            {/* User Avatar: Click to open the Sidebar */}
             <Avatar
               src={user?.photoURL || null}
               sx={{ bgcolor: "#1976d2", cursor: "pointer" }}
@@ -205,10 +227,12 @@ const TopBar = ({
               {!user?.photoURL &&
                 auth.currentUser?.email?.charAt(0).toUpperCase()}
             </Avatar>
+
           </Box>
         </Toolbar>
       </AppBar>
-
+      
+      {/* Sidebar Drawer for Additional Navigation Options */}
       <Drawer anchor="right" open={sidebarOpen} onClose={toggleSidebar(false)}>
         <List sx={{ width: 250 }}>
           {/* Settings Button */}
@@ -218,16 +242,12 @@ const TopBar = ({
             </ListItemIcon>
             <ListItemText primary="Settings" />
           </ListItem>
-
+          
+          {/* "My Activities" Button in Sidebar */}
           <ListItem
             button
             onClick={() => {
-              console.log("My Activities:", activities);
-              const acts = activities.filter(
-                (activity) => activity.userID === user.uid,
-              );
-              console.log("My activities:", acts);
-              navigate("/my-activities", { state: { acts } }); // optional: pass activities to route
+              navigate("/my-activities");
             }}
           >
             <ListItemIcon>
