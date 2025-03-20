@@ -10,7 +10,7 @@ import CreateActivity from "./pages/createActivity";
 import MyActivities from "./pages/myActivities";
 import Home from "./pages/home";
 import Settings from "./pages/settings";
-import ActivityDetail from "./pages/activityDetail";
+import ActivityDetail from "./pages/ActivityDetail";
 
 import { auth, db } from "./util/firebase";
 import { onAuthStateChanged } from "firebase/auth";
