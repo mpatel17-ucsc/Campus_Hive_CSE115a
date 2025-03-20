@@ -12,14 +12,17 @@ const mapContainerStyle = {
 const defaultCenter = { lat: 37.7749, lng: -122.4194 }; // Default center
 
 const HomeMap = ({ locations }) => {
-  console.log("received locations:", locations);
   const [map, setMap] = useState(null);
   const boundsRef = useRef(null);
 
   useEffect(() => {
     if (map && locations.length > 0) {
       const bounds = new window.google.maps.LatLngBounds();
-      locations.forEach(({ lat, lng }) => bounds.extend({ lat, lng }));
+
+      const santaCruz = locations.filter(
+        (location) => location.city === "Santa Cruz",
+      );
+      santaCruz.forEach(({ lat, lng }) => bounds.extend({ lat, lng }));
       map.fitBounds(bounds);
       boundsRef.current = bounds;
     }

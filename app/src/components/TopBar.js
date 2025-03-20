@@ -17,23 +17,18 @@ import {
   ListItem,
   ListItemIcon,
   ListItemText,
-  Divider,
 } from "@mui/material";
 import {
   Search as SearchIcon,
   Add as AddIcon,
   Home as HomeIcon,
   Logout as LogoutIcon,
-  NotificationsOff as NotificationsOffIcon,
-  NotificationsActive as NotificationsActiveIcon,
   Settings as SettingsIcon,
   LocalActivity as LocalActivityIcon,
 } from "@mui/icons-material";
 
-import { doc, updateDoc } from "firebase/firestore";
-
 import { signOut } from "firebase/auth";
-import { auth, db } from "../util/firebase";
+import { auth } from "../util/firebase";
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { onAuthStateChanged } from "firebase/auth";
@@ -74,16 +69,8 @@ const TopBar = ({
     setSidebarOpen(open);
   };
 
-  const [notificationsEnabled, setNotificationsEnabled] = useState(false);
-
-  const handleToggleNotifications = async () => {
-    setNotificationsEnabled(!notificationsEnabled);
-    await updateDoc(doc(db, "users", user.uid), {
-      allowNotifications: !notificationsEnabled,
-    });
-  };
-
   const [user, setUser] = useState(auth.currentUser);
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);

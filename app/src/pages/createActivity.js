@@ -44,11 +44,6 @@ const CreateActivity = () => {
     setLocation(location);
   };
 
-  //const handleUniversitySelect = (university) => {
-  //  console.log("Selected University:", university);
-  //  setSelectedUniversity(university);
-  //};
-
   const handleAddTag = () => {
     if (tagInput.trim() && !tags.includes(tagInput.trim())) {
       setTags([...tags, tagInput.trim()]);
@@ -117,7 +112,6 @@ const CreateActivity = () => {
     try {
       const userFolderRef = ref(storage, `images/${userID}/`);
       const fileList = await listAll(userFolderRef);
-
       console.log(`${userID} has ${fileList.items.length} images.`);
       return fileList.items.length;
     } catch (error) {
@@ -217,7 +211,7 @@ const CreateActivity = () => {
         <Box component="form" onSubmit={handleSubmit} sx={{ mt: 2 }}>
           {/* <Box component="form" sx={{ mt: 2 }}> */}
           <TextField
-            label="Place Name"
+            label="Title"
             variant="outlined"
             fullWidth
             value={placeName}

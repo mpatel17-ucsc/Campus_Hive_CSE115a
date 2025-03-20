@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import {
   Box,
   TextField,
@@ -24,7 +24,7 @@ import {
   deleteDoc,
   doc,
 } from "firebase/firestore";
-import { Delete, Edit } from "@mui/icons-material"
+import { Delete, Edit } from "@mui/icons-material";
 
 const CommentsSection = ({ activityId }) => {
   const [comments, setComments] = useState([]);
@@ -35,37 +35,38 @@ const CommentsSection = ({ activityId }) => {
   const [mentionMenuAnchor, setMentionMenuAnchor] = useState(null);
   // const [mentionQuery, setMentionQuery] = useState("");
   const [mentionResults, setMentionResults] = useState([]);
+  const commentsEndRef = useRef(null);
 
-  const fetchComments = async () => {
-    // Reference to the "comments" subcollection inside the specified "activityId"
+  const scrollToBottom = () => {
+    commentsEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  const fetchComments = useCallback(async () => {
     const commentsRef = collection(db, "activities", activityId, "comments");
-    // Create a query to order comments by creation timestamp in ascending order
     const q = query(commentsRef, orderBy("createdAt", "asc"));
-    // Listen for real-time updates in the comments collection
+
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      // Map through the retrieved documents and format them into an array of comment objects
       const commentsList = snapshot.docs.map((doc) => ({
-        id: doc.id, // Store document ID for potential edits or deletions
-        ...doc.data(), // Spread operator to include all comment fields (text, userId, userName, etc)
+        id: doc.id,
+        ...doc.data(),
       }));
-      // Update the state with the list of comments
+
       setComments(commentsList);
 
-      // Extract unique emails from comments
       const uniqueUsers = Array.from(
-        new Set(commentsList.map((c) => c.userName || c.email)), // Ensures only distinct users are stored
+        new Set(commentsList.map((c) => c.userName || c.email)),
       );
-      // Update the mention users state for autocomplete functionality
+
       setUsers(uniqueUsers);
     });
-    // Return the unsubscribe function to clean up the listener when the component unmounts
+
     return () => unsubscribe();
-  };
+  }, [activityId]); // Dependency: triggers re-creation if `activityId` changes
 
   // Ensure `fetchComments` runs when the component loads
   useEffect(() => {
     fetchComments();
-  }, [activityId]);
+  }, [activityId, fetchComments]);
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -74,11 +75,11 @@ const CommentsSection = ({ activityId }) => {
         const querySnapshot = await getDocs(collection(db, "users"));
         // Map through the documents and extract each user's ID and email
         const userList = querySnapshot.docs
-        .map((doc) => ({
-          id: doc.id,
-          username: doc.data().username || null, // Ensure username exists
-        }))
-        .filter((user) => user.username !== null); // Remove users without a username
+          .map((doc) => ({
+            id: doc.id,
+            username: doc.data().username || null, // Ensure username exists
+          }))
+          .filter((user) => user.username !== null); // Remove users without a username
         // Update state with the list of users
         setUsers(userList);
       } catch (error) {
@@ -107,23 +108,24 @@ const CommentsSection = ({ activityId }) => {
         return;
       }
 
-      
-    // Filter usernames based on input query
-    const filteredUsers = users
-      .map((user) => user.username)
-      .filter((username) => username && username.toLowerCase().startsWith(query));
+      // Filter usernames based on input query
+      const filteredUsers = users
+        .map((user) => user.username)
+        .filter(
+          (username) => username && username.toLowerCase().startsWith(query),
+        );
 
-    setMentionResults(filteredUsers);
+      setMentionResults(filteredUsers);
 
-    if (filteredUsers.length > 0) {
-      setMentionMenuAnchor(e.currentTarget);
+      if (filteredUsers.length > 0) {
+        setMentionMenuAnchor(e.currentTarget);
+      } else {
+        setMentionMenuAnchor(null);
+      }
     } else {
+      setMentionResults([]);
       setMentionMenuAnchor(null);
     }
-  } else {
-    setMentionResults([]);
-    setMentionMenuAnchor(null);
-  }
   };
 
   const handleMentionSelect = (username) => {
@@ -151,9 +153,11 @@ const CommentsSection = ({ activityId }) => {
         userName: auth.currentUser.displayName || "Anonymous",
       };
       const docRef = await addDoc(commentsRef, newComment);
-  
+
       setComments([...comments, { id: docRef.id, ...newComment }]); // Append new comment to state
-      window.location.reload()
+      setTimeout(scrollToBottom, 0); // Scroll to the bottom of the comments section
+
+      // window.location.reload();
       setCommentInput(""); // Clear input
       setMentionResults([]); // Clear mentions
       setMentionMenuAnchor(null);
@@ -161,7 +165,6 @@ const CommentsSection = ({ activityId }) => {
       console.error("Error adding comment:", error);
     }
   };
-  
 
   const handleDeleteComment = async (commentId) => {
     try {
@@ -176,7 +179,13 @@ const CommentsSection = ({ activityId }) => {
   const handleEditComment = async (commentId, newText) => {
     try {
       // Get a reference to the specific comment document in Firestore
-      const commentRef = doc(db, "activities", activityId, "comments", commentId);
+      const commentRef = doc(
+        db,
+        "activities",
+        activityId,
+        "comments",
+        commentId,
+      );
       // Update the comment text in Firestore
       await updateDoc(commentRef, { text: newText });
       // Exit edit mode after updating the comment
@@ -195,7 +204,7 @@ const CommentsSection = ({ activityId }) => {
       <Typography variant="subtitle1" gutterBottom>
         Comments
       </Typography>
-  
+
       {/* Scrollable comments container */}
       <Box
         sx={{
@@ -251,16 +260,25 @@ const CommentsSection = ({ activityId }) => {
                     }
                   />
                 )}
-  
+
                 {/* Edit & Delete Buttons (Only for Comment Owner) */}
                 {auth.currentUser?.uid === comment.userId && (
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 1, mt: 0.5, }}>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 1,
+                      mt: 0.5,
+                    }}
+                  >
                     {/* Edit Button */}
                     {editCommentId === comment.id ? (
                       <Button
                         variant="contained"
                         size="small"
-                        onClick={() => handleEditComment(comment.id, editCommentText)}
+                        onClick={() =>
+                          handleEditComment(comment.id, editCommentText)
+                        }
                       >
                         Save
                       </Button>
@@ -275,7 +293,7 @@ const CommentsSection = ({ activityId }) => {
                         <Edit fontSize="small" />
                       </IconButton>
                     )}
-  
+
                     {/* Delete Button */}
                     <IconButton
                       size="small"
@@ -302,9 +320,10 @@ const CommentsSection = ({ activityId }) => {
               No comments yet. Be the first to comment!
             </Typography>
           )}
+          <div ref={commentsEndRef} />
         </List>
       </Box>
-  
+
       {/* Input Field with Mention Suggestion */}
       <Box sx={{ display: "flex", gap: 1, position: "relative" }}>
         <TextField
@@ -326,7 +345,7 @@ const CommentsSection = ({ activityId }) => {
           Post
         </Button>
       </Box>
-  
+
       {/* Mention Suggestions Menu */}
       <Menu
         anchorEl={mentionMenuAnchor}
@@ -335,13 +354,16 @@ const CommentsSection = ({ activityId }) => {
         autoFocus={false} // Prevents accidental close on first selection
       >
         {mentionResults.map((username) => (
-          <MenuItem key={username} onClick={() => handleMentionSelect(username)}>
+          <MenuItem
+            key={username}
+            onClick={() => handleMentionSelect(username)}
+          >
             @{username}
           </MenuItem>
         ))}
       </Menu>
     </Box>
   );
-}  
+};
 
 export default CommentsSection;

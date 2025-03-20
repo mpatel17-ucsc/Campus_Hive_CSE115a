@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { auth, storage, db } from "../util/firebase"; // Ensure storage is exported in your firebase util
 import { updateDoc, getDoc, doc } from "firebase/firestore";
 import { LoadScript, Autocomplete } from "@react-google-maps/api";
@@ -29,6 +29,7 @@ const Settings = () => {
   // State variables for user and avatar file upload
   const [user, setUser] = useState(null);
   const [avatarFile, setAvatarFile] = useState(null);
+  const [avatarPreview, setAvatarPreview] = useState(null); // URL for preview
   const [uploading, setUploading] = useState(false);
   const [avatarSuccessMessage, setAvatarSuccessMessage] = useState("");
   const [avatarErrorMessage, setAvatarErrorMessage] = useState("");
@@ -39,6 +40,22 @@ const Settings = () => {
     useState("");
   const [displayNameErrorMessage, setDisplayNameErrorMessage] = useState("");
   const [updatingDisplayName, setUpdatingDisplayName] = useState(false);
+  const [isAvatarChanged, setIsAvatarChanged] = useState(false);
+
+  const fileInputRef = useRef(null);
+  const handleButtonClick = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
+
+  useEffect(() => {
+    return () => {
+      if (avatarPreview) {
+        URL.revokeObjectURL(avatarPreview);
+      }
+    };
+  }, [avatarPreview]);
 
   // Set current user from Firebase Auth and initialize displayName
   useEffect(() => {
@@ -50,8 +67,14 @@ const Settings = () => {
 
   // Handle file selection for avatar update
   const handleFileChange = (e) => {
-    if (e.target.files[0]) {
-      setAvatarFile(e.target.files[0]);
+    const file = e.target.files[0];
+    if (file) {
+      setAvatarFile(file);
+
+      // Create a preview URL
+      const url = URL.createObjectURL(file);
+      setAvatarPreview(url);
+      setIsAvatarChanged(true);
     }
   };
 
@@ -74,6 +97,8 @@ const Settings = () => {
       // Update local state to reflect the new avatar
       setUser({ ...user, photoURL: downloadURL });
       setAvatarFile(null);
+      setAvatarPreview(null);
+      setIsAvatarChanged(false);
     } catch (error) {
       console.error("Error updating avatar:", error);
       setAvatarErrorMessage("Failed to update avatar. Please try again.");
@@ -236,23 +261,44 @@ const Settings = () => {
           }}
         >
           <Avatar
-            src={user?.photoURL || "/default-avatar.png"}
-            sx={{ width: 100, height: 100 }}
-          />
-          {/* <input */}
-          {/*   accept="image/*" */}
-          {/*   type="file" */}
-          {/*   onChange={handleFileChange} */}
-          {/*   style={{ marginTop: "20px" }} */}
-          {/* /> */}
-          <Button
-            variant="contained"
-            sx={{ mt: 2 }}
-            onClick={handleUpload}
-            disabled={uploading}
+            src={avatarPreview || user?.photoURL || null}
+            sx={{ bgcolor: "#1976d2", width: 100, height: 100 }}
           >
-            {uploading ? <CircularProgress size={24} /> : "Update Avatar"}
-          </Button>
+            {/* Fallback: if there is no photoURL, display first letter of the user's email */}
+            {!user?.photoURL &&
+              auth.currentUser?.email?.charAt(0).toUpperCase()}
+          </Avatar>
+
+          <br />
+
+          <input
+            type="file"
+            accept="image/*"
+            multiple // Enables multiple file selection
+            ref={fileInputRef}
+            onChange={handleFileChange}
+            style={{ display: "none" }}
+          />
+
+          <Stack direction="row" alignItems="center" spacing={1}>
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={handleButtonClick}
+            >
+              Change Avatar
+            </Button>
+
+            {isAvatarChanged && (
+              <Button
+                variant="contained"
+                color="success"
+                onClick={handleUpload}
+              >
+                Save Avatar
+              </Button>
+            )}
+          </Stack>
         </Box>
 
         <Divider sx={{ my: 4 }} />
@@ -298,6 +344,8 @@ const Settings = () => {
             )}
           </Button>
         </Box>
+
+        <Divider sx={{ my: 4 }} />
 
         <Box
           sx={{

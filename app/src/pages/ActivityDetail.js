@@ -12,21 +12,25 @@ import {
   Chip,
 } from "@mui/material";
 import { ThumbUp, ThumbDown, Room, ArrowBack } from "@mui/icons-material";
-import { db, auth } from "../util/firebase";
-import { doc, getDoc, increment, updateDoc, arrayUnion, arrayRemove } from "firebase/firestore";
+import { db } from "../util/firebase";
+import {
+  doc,
+  getDoc,
+  increment,
+  updateDoc,
+  arrayUnion,
+  arrayRemove,
+} from "firebase/firestore";
 import CommentsSection from "../components/CommentSection";
 
 const ActivityDetail = () => {
   const { id } = useParams();
   const [activity, setActivity] = useState(null);
 
-  const user = auth.currentUser; 
-
   const [upvotes, setUpvotes] = useState(0);
   const [downvotes, setDownvotes] = useState(0);
   const [hasUpvoted, setHasUpvoted] = useState(false);
   const [hasDownvoted, setHasDownvoted] = useState(false);
-
 
   useEffect(() => {
     if (!id) {
@@ -57,9 +61,9 @@ const ActivityDetail = () => {
       const activitySnap = await getDoc(activityRef);
       if (activitySnap.exists()) {
         const data = activitySnap.data();
-        const userId = data.userID // Replace with your logic to get the current user's ID
+        const userId = data.userID; // Replace with your logic to get the current user's ID
         let updateData = {};
-  
+
         if (type === "upvotes") {
           if (hasUpvoted) {
             updateData = {
@@ -109,7 +113,7 @@ const ActivityDetail = () => {
             setDownvotes((prev) => prev + 1);
           }
         }
-  
+
         await updateDoc(activityRef, updateData);
       }
     } catch (error) {
@@ -119,29 +123,75 @@ const ActivityDetail = () => {
 
   return (
     <Container maxWidth="md" sx={{ mt: 4 }}>
-      <Button startIcon={<ArrowBack />} onClick={() => window.history.back()}>Back</Button>
+      <Button startIcon={<ArrowBack />} onClick={() => window.history.back()}>
+        Back
+      </Button>
       <Card sx={{ borderRadius: "12px", boxShadow: 3, position: "relative" }}>
-        <CardMedia component="img" height="300" image={activity.imageUrls?.[0] || "/placeholder.jpg"} alt="Activity Image" sx={{ objectFit: "cover" }} />
+        <CardMedia
+          component="img"
+          height="300"
+          image={activity.imageUrls?.[0] || "/placeholder.jpg"}
+          alt="Activity Image"
+          sx={{ objectFit: "cover" }}
+        />
         <CardContent>
-          <Typography variant="h4" fontWeight="bold">{activity.placeName}</Typography>
+          <Typography variant="h4" fontWeight="bold">
+            {activity.placeName}
+          </Typography>
           <Box sx={{ display: "flex", alignItems: "center", mt: 1 }}>
-            <Typography variant="body1" color="textSecondary">{activity.location?.city}, {activity.location?.state}</Typography>
-            <IconButton color="primary" onClick={() => window.open(`https://www.google.com/maps?q=${activity.location?.lat},${activity.location?.lng}`, "_blank")} sx={{ ml: 0.5 }}>
+            <Typography variant="body1" color="textSecondary">
+              {activity.location?.city}, {activity.location?.state}
+            </Typography>
+            <IconButton
+              color="primary"
+              onClick={() =>
+                window.open(
+                  `https://www.google.com/maps?q=${activity.location?.lat},${activity.location?.lng}`,
+                  "_blank",
+                )
+              }
+              sx={{ ml: 0.5 }}
+            >
               <Room fontSize="small" />
             </IconButton>
           </Box>
-          {activity.selectedUniversity && <Typography variant="body2" color="textSecondary"><strong>College: </strong>{activity.selectedUniversity}</Typography>}
-          <Typography variant="body1" sx={{ mt: 2 }}>{activity.description}</Typography>
-          <Typography variant="subtitle2" color="primary" sx={{ mt: 1 }}>⭐ {activity.rating} / 5</Typography>
-          <Typography variant="caption" color="textSecondary">{new Date(activity.createdAt?.seconds * 1000).toLocaleDateString()}</Typography>
+          {activity.selectedUniversity && (
+            <Typography variant="body2" color="textSecondary">
+              <strong>College: </strong>
+              {activity.selectedUniversity}
+            </Typography>
+          )}
+          <Typography variant="body1" sx={{ mt: 2 }}>
+            {activity.description}
+          </Typography>
+          <Typography variant="subtitle2" color="primary" sx={{ mt: 1 }}>
+            ⭐ {activity.rating} / 5
+          </Typography>
+          <Typography variant="caption" color="textSecondary">
+            {new Date(activity.createdAt?.seconds * 1000).toLocaleDateString()}
+          </Typography>
           {activity.tags?.length > 0 && (
             <Box sx={{ mt: 1, display: "flex", flexWrap: "wrap", gap: 0.5 }}>
-              {activity.tags.map((tag, index) => <Chip key={index} label={tag} color="primary" size="small" />)}
+              {activity.tags.map((tag, index) => (
+                <Chip key={index} label={tag} color="primary" size="small" />
+              ))}
             </Box>
           )}
           <Box sx={{ display: "flex", justifyContent: "space-between", mt: 2 }}>
-            <Button startIcon={<ThumbUp />} sx={{ color:  hasUpvoted ? "green" : "default" }} onClick={(e) => handleVote("upvotes", e)}>{upvotes}</Button>
-            <Button startIcon={<ThumbDown />} sx={{ color:  hasDownvoted ? "red" : "default" }} onClick={(e) => handleVote("downvotes", e)}>{downvotes}</Button>
+            <Button
+              startIcon={<ThumbUp />}
+              sx={{ color: hasUpvoted ? "green" : "default" }}
+              onClick={(e) => handleVote("upvotes", e)}
+            >
+              {upvotes}
+            </Button>
+            <Button
+              startIcon={<ThumbDown />}
+              sx={{ color: hasDownvoted ? "red" : "default" }}
+              onClick={(e) => handleVote("downvotes", e)}
+            >
+              {downvotes}
+            </Button>
           </Box>
           <CommentsSection activityId={id} />
         </CardContent>

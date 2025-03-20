@@ -1,4 +1,5 @@
 import { db } from "../util/firebase";
+
 import TopBar from "../components/TopBar";
 import ActivityCard from "../components/ActivityCard";
 import HomeMap from "../components/HomeMap";
@@ -7,7 +8,6 @@ import React, { useEffect, useState } from "react";
 import { collection, getDocs } from "firebase/firestore";
 import { useLocation } from "react-router-dom";
 import { Container, CircularProgress, Box, Alert, Grid } from "@mui/material";
-import UniversityHome from "../components/UniversityHome";
 
 const Home = () => {
   // State variables
@@ -24,9 +24,6 @@ const Home = () => {
   // State variables for search and tag filters
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedTags, setSelectedTags] = useState([]);
-
-  // State for university selection
-  const [selectedUniversity, setSelectedUniversity] = useState("");
 
   // Function to fetch activities from Firestore
   const fetchActivities = async () => {
@@ -90,13 +87,6 @@ const Home = () => {
       );
     }
 
-    // Filter by selected university
-    if (selectedUniversity) {
-      filtered = filtered.filter(
-        (activity) => activity.selectedUniversity === selectedUniversity,
-      );
-    }
-
     // Sorting logic
     if (sortBy === "highestRated") {
       filtered = [...filtered].sort(
@@ -109,17 +99,12 @@ const Home = () => {
     }
 
     setFilteredActivities(filtered);
-  }, [searchTerm, selectedTags, activities, sortBy, selectedUniversity]);
+  }, [searchTerm, selectedTags, activities, sortBy]);
 
-  let locations = activities
+  // const locations =
+  let locations = filteredActivities
     .map((activity) => activity.location) // Extract locations
     .filter((location) => location !== null && location !== undefined); // Remove null/undefined
-  console.log("locations", locations);
-
-  const handleUniversitySelect = (university) => {
-    console.log("Selected University:", university);
-    setSelectedUniversity(university);
-  };
 
   return (
     <Box
