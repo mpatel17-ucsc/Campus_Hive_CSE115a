@@ -28,7 +28,6 @@ import {
 } from "@mui/icons-material";
 import { useState, useEffect } from "react";
 import { db, auth } from "../util/firebase";
-// import { debounce } from "lodash";
 import { useNavigate } from "react-router-dom";
 import CommentsSection from "./CommentSection";
 
