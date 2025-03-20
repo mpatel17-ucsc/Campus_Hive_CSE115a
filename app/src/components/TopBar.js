@@ -42,7 +42,7 @@ const TopBar = ({
   sortBy, // Sorting method (e.g., highest rated, most popular)
   setSortBy, // Function to update sorting preference
   showSearch = true, // Boolean flag to show/hide the search bar
-  activities = [], // List of activities (used for filtering "My Activities")
+  activities = [], // List of activities
 }) => {
   const navigate = useNavigate(); // Hook to programmatically navigate between pages
   const [sidebarOpen, setSidebarOpen] = useState(false); // State to manage sidebar open/close
