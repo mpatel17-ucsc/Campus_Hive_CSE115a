@@ -24,14 +24,17 @@ import {
 import CommentsSection from "../components/CommentSection";
 
 const ActivityDetail = () => {
+  // Extracts the activity ID from the URL parameters
   const { id } = useParams();
-  const [activity, setActivity] = useState(null);
 
-  const [upvotes, setUpvotes] = useState(0);
-  const [downvotes, setDownvotes] = useState(0);
-  const [hasUpvoted, setHasUpvoted] = useState(false);
-  const [hasDownvoted, setHasDownvoted] = useState(false);
+  // State variables to store activity details and voting data
+  const [activity, setActivity] = useState(null); // Stores the fetched activity details
+  const [upvotes, setUpvotes] = useState(0); // Stores the number of upvotes
+  const [downvotes, setDownvotes] = useState(0); // Stores the number of downvotes
+  const [hasUpvoted, setHasUpvoted] = useState(false); // Tracks if the current user has upvoted
+  const [hasDownvoted, setHasDownvoted] = useState(false); // Tracks if the current user has downvoted
 
+  // Fetch activity details from Firestore when component mounts
   useEffect(() => {
     if (!id) {
       console.error("Activity ID is missing");
@@ -42,7 +45,8 @@ const ActivityDetail = () => {
       const activitySnap = await getDoc(activityRef);
       if (activitySnap.exists()) {
         const data = activitySnap.data();
-        setActivity(data);
+        setActivity(data); // Stores the activity data in state
+        // Set initial vote counts and user voting status
         setUpvotes(data.upvotes || 0);
         setDownvotes(data.downvotes || 0);
         setHasUpvoted(data.upvotedBy?.includes(data.userID));
@@ -52,8 +56,10 @@ const ActivityDetail = () => {
     fetchActivity();
   }, [id]);
 
+  // Display loading message if activity is not yet fetched
   if (!activity) return <Typography>Loading...</Typography>;
 
+  // Handles upvotes and downvotes
   const handleVote = async (type, e) => {
     e.stopPropagation(); // Prevent the card click from being triggered
     try {
@@ -63,7 +69,8 @@ const ActivityDetail = () => {
         const data = activitySnap.data();
         const userId = data.userID; // Replace with your logic to get the current user's ID
         let updateData = {};
-
+        
+        // Handling UPVOTE
         if (type === "upvotes") {
           if (hasUpvoted) {
             updateData = {
@@ -88,6 +95,8 @@ const ActivityDetail = () => {
             setHasUpvoted(true);
             setUpvotes((prev) => prev + 1);
           }
+
+          // Handling DOWNVOTE
         } else if (type === "downvotes") {
           if (hasDownvoted) {
             updateData = {
@@ -113,7 +122,7 @@ const ActivityDetail = () => {
             setDownvotes((prev) => prev + 1);
           }
         }
-
+        // Update Firestore with new vote counts and user voting state
         await updateDoc(activityRef, updateData);
       }
     } catch (error) {
@@ -123,10 +132,15 @@ const ActivityDetail = () => {
 
   return (
     <Container maxWidth="md" sx={{ mt: 4 }}>
+      {/* Back Button: Allows user to return to the previous page */}
       <Button startIcon={<ArrowBack />} onClick={() => window.history.back()}>
         Back
       </Button>
+
+      {/* Main Activity Card: Contains all activity details */}
       <Card sx={{ borderRadius: "12px", boxShadow: 3, position: "relative" }}>
+
+        {/* Activity Image */}
         <CardMedia
           component="img"
           height="300"
@@ -135,9 +149,12 @@ const ActivityDetail = () => {
           sx={{ objectFit: "cover" }}
         />
         <CardContent>
+          {/* Activity Title */}
           <Typography variant="h4" fontWeight="bold">
             {activity.placeName}
           </Typography>
+
+          {/* Location Details + Google Maps Link */}
           <Box sx={{ display: "flex", alignItems: "center", mt: 1 }}>
             <Typography variant="body1" color="textSecondary">
               {activity.location?.city}, {activity.location?.state}
@@ -155,21 +172,31 @@ const ActivityDetail = () => {
               <Room fontSize="small" />
             </IconButton>
           </Box>
+
+          {/* University Associated with the Activity (If available) */}
           {activity.selectedUniversity && (
             <Typography variant="body2" color="textSecondary">
               <strong>College: </strong>
               {activity.selectedUniversity}
             </Typography>
           )}
+
+          {/* Activity Description */}
           <Typography variant="body1" sx={{ mt: 2 }}>
             {activity.description}
           </Typography>
+
+          {/* Rating of the Activity */}
           <Typography variant="subtitle2" color="primary" sx={{ mt: 1 }}>
-            ⭐ {activity.rating} / 5
+            {activity.rating} / 5
           </Typography>
+
+          {/* Date when Activity was Created */}
           <Typography variant="caption" color="textSecondary">
             {new Date(activity.createdAt?.seconds * 1000).toLocaleDateString()}
           </Typography>
+
+          {/* Tags Section: Displays all relevant tags */}
           {activity.tags?.length > 0 && (
             <Box sx={{ mt: 1, display: "flex", flexWrap: "wrap", gap: 0.5 }}>
               {activity.tags.map((tag, index) => (
@@ -177,6 +204,8 @@ const ActivityDetail = () => {
               ))}
             </Box>
           )}
+
+          {/* Voting Section: Upvote / Downvote Buttons */}
           <Box sx={{ display: "flex", justifyContent: "space-between", mt: 2 }}>
             <Button
               startIcon={<ThumbUp />}
@@ -193,6 +222,8 @@ const ActivityDetail = () => {
               {downvotes}
             </Button>
           </Box>
+
+          {/* Comments Section */}
           <CommentsSection activityId={id} />
         </CardContent>
       </Card>

@@ -25,7 +25,6 @@ const MyActivities = () => {
 
   const location = useLocation();
   const { activities } = location.state || {};
-  // console.log("received activities", activities);
   // Set current user from Firebase Auth and initialize displayName
   useEffect(() => {
     if (auth.currentUser) {
@@ -33,29 +32,6 @@ const MyActivities = () => {
       setDisplayName(auth.currentUser.displayName || "");
     }
   }, []);
-
-  // const [activities, setActivities] = useState([]);
-
-  // const fetchActivities = useCallback(async () => {
-  //   try {
-  //     const activitiesQuery = query(
-  //       collection(db, "activities"),
-  //       where("userID", "==", userID),
-  //     );
-  //     const querySnapshot = await getDocs(activitiesQuery);
-  //     const activitiesList = querySnapshot.docs.map((doc) => ({
-  //       id: doc.id,
-  //       ...doc.data(),
-  //     }));
-  //     setActivities(activitiesList);
-  //   } catch (error) {
-  //     console.error("Error fetching activities:", error);
-  //   }
-  // }, [userID]);
-  //
-  // useEffect(() => {
-  //   fetchActivities();
-  // }, [fetchActivities]);
 
   const handleDelete = (id) => async () => {
     console.log("partent", id);
