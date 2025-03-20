@@ -11,7 +11,7 @@ import {
   IconButton,
   Chip,
 } from "@mui/material";
-import { ThumbUp, ThumbDown, Room, ArrowBack } from "@mui/icons-material";
+import { ThumbUp, ThumbDown, Room, ArrowBack , ArrowForward, ArrowBackIos} from "@mui/icons-material";
 import { db } from "../util/firebase";
 import {
   doc,
@@ -31,6 +31,7 @@ const ActivityDetail = () => {
   const [downvotes, setDownvotes] = useState(0);
   const [hasUpvoted, setHasUpvoted] = useState(false);
   const [hasDownvoted, setHasDownvoted] = useState(false);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   useEffect(() => {
     if (!id) {
@@ -122,19 +123,72 @@ const ActivityDetail = () => {
     }
   };
 
+  const images = activity.imageUrls || ["/placeholder.jpg"];
+
+  const handleNextImage = () => {
+    setCurrentImageIndex((prevIndex) => (prevIndex + 1) % images.length);
+  };
+
+  const handlePrevImage = () => {
+    setCurrentImageIndex((prevIndex) => (prevIndex - 1 + images.length) % images.length);
+  };
+
   return (
     <Container maxWidth="md" sx={{ mt: 4 }}>
       <Button startIcon={<ArrowBack />} onClick={() => window.history.back()}>
         Back
       </Button>
       <Card sx={{ borderRadius: "12px", boxShadow: 3, position: "relative" }}>
-        <CardMedia
-          component="img"
-          height="300"
-          image={activity.imageUrls?.[0] || "/placeholder.jpg"}
-          alt="Activity Image"
-          sx={{ objectFit: "cover" }}
-        />
+        
+        {/* Image Carousel */}
+        <Box sx={{ position: "relative" }}>
+          <CardMedia
+            component="img"
+            height="300"
+            image={images[currentImageIndex]}
+            alt="Activity Image"
+            sx={{ objectFit: "cover" }}
+          />
+          
+          {/* Left Arrow */}
+          {images.length > 1 && (
+            <IconButton
+              sx={{ position: "absolute", top: "50%", left: 10, transform: "translateY(-50%)", background: "rgba(0, 0, 0, 0.5)", color: "white" }}
+              onClick={handlePrevImage}
+            >
+              <ArrowBackIos />
+            </IconButton>
+          )}
+          
+          {/* Right Arrow */}
+          {images.length > 1 && (
+            <IconButton
+              sx={{ position: "absolute", top: "50%", right: 10, transform: "translateY(-50%)", background: "rgba(0, 0, 0, 0.5)", color: "white" }}
+              onClick={handleNextImage}
+            >
+              <ArrowForward />
+            </IconButton>
+          )}
+          
+          {/* Dot Navigation */}
+          {images.length > 1 && (
+            <Box sx={{ position: "absolute", bottom: 10, left: "50%", transform: "translateX(-50%)", display: "flex", gap: 1 }}>
+              {images.map((_, index) => (
+                <Box
+                  key={index}
+                  sx={{
+                    width: 10,
+                    height: 10,
+                    borderRadius: "50%",
+                    backgroundColor: index === currentImageIndex ? "white" : "gray",
+                    opacity: index === currentImageIndex ? 1 : 0.5
+                  }}
+                />
+              ))}
+            </Box>
+          )}
+        </Box>
+
         <CardContent>
           <Typography variant="h4" fontWeight="bold">
             {activity.placeName}
